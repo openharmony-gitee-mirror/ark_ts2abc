@@ -77,6 +77,8 @@ def npm_run_build(options):
     node_modules_dir = os.path.join(options.dist_dir, 'node_modules')
     tsc = os.path.join(node_modules_dir, "typescript/bin/tsc")
 
+    os.environ["NODE_PATH"] = node_modules_dir
+
     if plat_form == "linux":
         cmd = [tsc, '-b', 'src']
         run_command(cmd, options.dist_dir)
