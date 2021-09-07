@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# coding: utf-8
+#coding: utf-8
 
 """
 Copyright (c) 2021 Huawei Device Co., Ltd.
@@ -65,7 +65,7 @@ def gen_abc_info(input_arguments):
 
     if not os.path.exists(os.path.join(path, "node_modules")):
         if input_arguments.node_modules:
-            cmd = ['cp', "-rf", input_arguments.node_modules, path]
+            cmd = ['cp', "-r", input_arguments.node_modules, path]
             run_command(cmd, path)
         else:
             cmd = ['npm', 'install']

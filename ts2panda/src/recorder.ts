@@ -57,6 +57,7 @@ export class Recorder {
     private scopeMap: Map<ts.Node, Scope> = new Map<ts.Node, Scope>();
     private hoistMap: Map<Scope, Decl[]> = new Map<Scope, Decl[]>();
     private parametersMap: Map<ts.FunctionLikeDeclaration, FunctionParameter[]> = new Map<ts.FunctionLikeDeclaration, FunctionParameter[]>();
+    private funcNameMap: Map<string, number>;
     private ClassGroupOfNoCtor: Array<ts.ClassLikeDeclaration> = new Array<ts.ClassLikeDeclaration>();
     private importStmts: Array<ModuleStmt> = [];
     private exportStmts: Array<ModuleStmt> = [];
@@ -66,6 +67,8 @@ export class Recorder {
         this.node = node;
         this.scope = scope;
         this.compilerDriver = compilerDriver;
+        this.funcNameMap = new Map<string, number>();
+        this.funcNameMap.set("main", 1);
     }
 
     record() {
@@ -422,6 +425,16 @@ export class Recorder {
         }
 
         (<FunctionScope>this.getScopeOfNode(node)).setFuncName(name);
+
+        if (name != '') {
+            let funcNameMap = this.funcNameMap;
+            if (funcNameMap.has(name)) {
+                let nums = <number>funcNameMap.get(name);
+                funcNameMap.set(name, ++nums);
+            } else {
+                funcNameMap.set(name, 1);
+            }
+        }
     }
 
     recordFunctionParameters(node: ts.FunctionLikeDeclaration) {
@@ -551,5 +564,9 @@ export class Recorder {
 
     getParametersOfFunction(node: ts.FunctionLikeDeclaration) {
         return this.parametersMap.get(node);
+    }
+
+    getFuncNameMap() {
+        return this.funcNameMap;
     }
 }

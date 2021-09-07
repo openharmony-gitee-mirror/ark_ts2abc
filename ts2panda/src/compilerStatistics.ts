@@ -13,8 +13,6 @@
  * limitations under the License.
  */
 
-import { builtinsCodeMap } from "./builtinsMap";
-import { CmdOptions } from "./cmdOptions";
 import { getInstructionSize, Imm, IRNode, IRNodeKind } from "./irnodes";
 import { LOGD } from "./log";
 import { PandaGen } from "./pandagen";
@@ -126,18 +124,10 @@ class HistogramStatistics {
             return "Label"
         }
 
-        if (CmdOptions.isVariantBytecode()) {
-            if (ins.mnemonic.startsWith("builtin")) {
-                let subCode = (<Imm>ins.operands[0]).value;
-
-                return (builtinsCodeMap as any)[ins.mnemonic][subCode];
-            }
-        } else {
-            if ((ins.kind == IRNodeKind.CALL) || (ins.kind == IRNodeKind.CALL_SHORT) || (ins.kind == IRNodeKind.CALL_RANGE)) {
-                let mnemonic = <string>ins.operands[0];
-                let part = mnemonic.split('.');
-                return part[2];
-            }
+        if ((ins.kind == IRNodeKind.CALL) || (ins.kind == IRNodeKind.CALL_SHORT) || (ins.kind == IRNodeKind.CALL_RANGE)) {
+            let mnemonic = <string>ins.operands[0];
+            let part = mnemonic.split('.');
+            return part[2];
         }
         return ins.mnemonic;
     }
@@ -200,10 +190,10 @@ class HistogramStatistics {
         LOGD("Histogram:", "====== (" + this.funcName + ") ======");
         LOGD("op code\t\t\tinsns number\tins size\ttotal size\tsize percentage");
         this.insHistogram.forEach((value, key) => {
-            if (key.length < 8) { // 8 indicates insn name length
+            if (key.length < 8) {
                 LOGD(key + "\t\t\t" + value.getCount() + "\t\t"+ value.getInstSize() + "\t\t" + value.getTotalSize() + "\t\t"
-                     + value.getSavedSizeIfRemoved(this) + "\t" + Math.round(value.getSavedSizeIfRemoved(this) / totalSize * 100) + "%"); // multiplying 100 is to calculate the percentage data
-            } else if (key.length < 16) { // 16 indicates insn name length
+                     + value.getSavedSizeIfRemoved(this) + "\t" + Math.round(value.getSavedSizeIfRemoved(this) / totalSize * 100) + "%");
+            } else if (key.length < 16) {
                 LOGD(key + "\t\t" + value.getCount() + "\t\t" + value.getInstSize() + "\t\t" + value.getTotalSize() + "\t\t"
                      + value.getSavedSizeIfRemoved(this) + "\t" + Math.round(value.getSavedSizeIfRemoved(this) / totalSize * 100) + "%");
             } else {

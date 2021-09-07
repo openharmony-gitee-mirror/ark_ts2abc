@@ -251,6 +251,11 @@ static void ParseLiteral(const Json::Value &literal, std::vector<panda::pandasm:
             valueLiteral.value_ = static_cast<uint8_t>(0);
             break;
         }
+        case static_cast<uint8_t>(panda::panda_file::LiteralTag::METHODAFFILIATE): {
+            valueLiteral.tag_ = panda::panda_file::LiteralTag::METHODAFFILIATE;
+            valueLiteral.value_ = static_cast<uint16_t>(literal["value"].asUInt());
+            break;
+        }
         case static_cast<uint8_t>(panda::panda_file::LiteralTag::NULLVALUE): {
             valueLiteral.tag_ = panda::panda_file::LiteralTag::NULLVALUE;
             valueLiteral.value_ = static_cast<uint8_t>(0);
@@ -589,41 +594,6 @@ static void ParseFunctionCatchTables(const Json::Value &function, panda::pandasm
     }
 }
 
-static void ParseFunctionAnnotation(const Json::Value &function, panda::pandasm::Function &pandaFunc)
-{
-    uint32_t icSize = 0;
-    if (function.isMember("icSize") && function["icSize"].isInt()) {
-        icSize = function["icSize"].asUInt();
-    }
-
-    uint8_t parameterLength = 0;
-    if (function.isMember("parameterLength") && function["parameterLength"].isInt()) {
-        parameterLength = function["parameterLength"].asUInt();
-    }
-
-    std::string funcName = "";
-    if (function.isMember("funcName") && function["funcName"].isString()) {
-        funcName = function["funcName"].asString();
-    }
-
-    panda::pandasm::AnnotationData funcAnnotationData("_ESAnnotation");
-
-    panda::pandasm::AnnotationElement icSizeAnnotationElement("icSize", std::make_unique<panda::pandasm::ScalarValue>(
-        panda::pandasm::ScalarValue::Create<panda::pandasm::Value::Type::U32>(icSize)));
-    funcAnnotationData.AddElement(std::move(icSizeAnnotationElement));
-
-    panda::pandasm::AnnotationElement parameterLengthAnnotationElement("parameterLength", std::make_unique<panda::
-        pandasm::ScalarValue>(panda::pandasm::ScalarValue::Create<panda::pandasm::Value::Type::U32>(parameterLength)));
-    funcAnnotationData.AddElement(std::move(parameterLengthAnnotationElement));
-
-    panda::pandasm::AnnotationElement funcNameAnnotationElement("funcName", std::make_unique<panda::pandasm::
-        ScalarValue>(panda::pandasm::ScalarValue::Create<panda::pandasm::Value::Type::STRING>(funcName)));
-    funcAnnotationData.AddElement(std::move(funcNameAnnotationElement));
-
-    const_cast<std::vector<panda::pandasm::AnnotationData> &>(pandaFunc.metadata->GetAnnotations()).push_back(
-        std::move(funcAnnotationData));
-}
-
 static panda::pandasm::Function ParseFunction(const Json::Value &function)
 {
     auto pandaFunc = GetFunctionDefintion(function);
@@ -637,8 +607,6 @@ static panda::pandasm::Function ParseFunction(const Json::Value &function)
     ParseFunctionLabels(function, pandaFunc);
     // parsing catch blocks
     ParseFunctionCatchTables(function, pandaFunc);
-    // parsing IC Size & ParameterLength
-    ParseFunctionAnnotation(function, pandaFunc);
 
     return pandaFunc;
 }
@@ -657,14 +625,6 @@ static void GenrateESModuleModeRecord(panda::pandasm::Program &prog, bool module
     ecmaModuleModeRecord.field_list.emplace_back(std::move(modeField));
 
     prog.record_table.emplace(ecmaModuleModeRecord.name, std::move(ecmaModuleModeRecord));
-}
-
-static void GenerateESAnnoatationRecord(panda::pandasm::Program &prog)
-{
-    auto ecmaAnnotationRecord = panda::pandasm::Record("_ESAnnotation", LANG_EXT);
-    ecmaAnnotationRecord.metadata->SetAttribute("external");
-    ecmaAnnotationRecord.metadata->SetAccessFlags(panda::ACC_ANNOTATION);
-    prog.record_table.emplace(ecmaAnnotationRecord.name, std::move(ecmaAnnotationRecord));
 }
 
 static int ParseJson(const std::string &data, Json::Value &rootValue)
@@ -745,7 +705,6 @@ static void ReplaceAllDistinct(std::string &str, const std::string &oldValue, co
 
 static void ParseOptions(const Json::Value &rootValue, panda::pandasm::Program &prog)
 {
-    GenerateESAnnoatationRecord(prog);
     ParseModuleMode(rootValue, prog);
     ParseLogEnable(rootValue);
     ParseDebugMode(rootValue);

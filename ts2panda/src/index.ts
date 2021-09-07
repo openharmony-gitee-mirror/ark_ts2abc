@@ -21,7 +21,6 @@ import { LOGD, LOGE } from "./log";
 import { Pass } from "./pass";
 import { CacheExpander } from "./pass/cacheExpander";
 import { ICPass } from "./pass/ICPass";
-import { IntrinsicVariantExpander } from "./pass/intrinsicVariantExpander";
 import { RegAlloc } from "./regAllocator";
 import { setGlobalStrict } from "./strictMode";
 import jshelpers = require("./jshelpers");
@@ -49,7 +48,6 @@ function main(fileNames: string[], options: ts.CompilerOptions) {
                             let passes: Pass[] = [
                                 new CacheExpander(),
                                 new ICPass(),
-                                new IntrinsicVariantExpander(),
                                 new RegAlloc()
                             ];
                             compilerDriver.setCustomPasses(passes);
@@ -82,7 +80,7 @@ namespace Compiler {
             target: ts.ScriptTarget.ES2015,
             module: ts.ModuleKind.CommonJS,
             strictNullChecks: true,
-            skipLibCheck: true
+            skipLibCheck: true,
         };
     }
 }

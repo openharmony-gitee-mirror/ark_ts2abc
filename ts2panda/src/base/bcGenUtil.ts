@@ -14,82 +14,88 @@
  */
 
 import {
-    Call0Dyn,
-    Call1Dyn,
-    Call2Dyn,
-    Call3Dyn,
-    CalliRangeDyn,
-    CalliThisRangeDyn,
-    CloseIterator,
-    CopyDataProperties,
-    CopyModule,
-    CreateArrayWithBuffer,
-    CreateEmptyArray,
-    CreateEmptyObject,
-    CreateObjectHavingMethod,
-    CreateObjectWithBuffer,
-    CreateObjectWithExcludedKeys,
-    SetObjectWithProto,
-    Debugger,
-    DefineClassWithBuffer,
-    DefineGetterSetterByValue,
-    DelObjProp,
+    EcmaCallarg0dyn,
+    EcmaCallarg1dyn,
+    EcmaCallargs2dyn,
+    EcmaCallargs3dyn,
+    EcmaCallirangedyn,
+    EcmaCallithisrangedyn,
+    EcmaCloseiterator,
+    EcmaCopydataproperties,
+    EcmaCopymodule,
+    EcmaCreatearraywithbuffer,
+    EcmaCreateemptyarray,
+    EcmaCreateemptyobject,
+    EcmaCreateobjecthavingmethod,
+    EcmaCreateobjectwithbuffer,
+    EcmaCreateobjectwithexcludedkeys,
+    EcmaCreateregexpwithliteral,
+    EcmaDebugger,
+    EcmaDefineasyncfunc,
+    EcmaDefineclasswithbuffer,
+    EcmaDefinefuncdyn,
+    EcmaDefinegeneratorfunc,
+    EcmaDefinegettersetterbyvalue,
+    EcmaDefinemethod,
+    EcmaDefinencfuncdyn,
+    EcmaDelobjprop,
+    EcmaGetiterator,
+    EcmaGetiteratornext,
+    EcmaGetnextpropname,
+    EcmaGetpropiterator,
+    EcmaImportmodule,
+    EcmaIsfalse,
+    EcmaIstrue,
+    EcmaLdglobalvar,
+    EcmaLdhomeobject,
+    EcmaLdlexenvdyn,
+    EcmaLdlexvardyn,
+    EcmaLdmodvarbyname,
+    EcmaLdobjbyindex,
+    EcmaLdobjbyname,
+    EcmaLdobjbyvalue,
+    EcmaLdsuperbyname,
+    EcmaLdsuperbyvalue,
+    EcmaNewlexenvdyn,
+    EcmaNewobjdynrange,
+    EcmaPoplexenvdyn,
+    EcmaReturnundefined,
+    EcmaSetobjectwithproto,
+    EcmaStarrayspread,
+    EcmaStglobalvar,
+    EcmaStlexvardyn,
+    EcmaStmodulevar,
+    EcmaStobjbyindex,
+    EcmaStobjbyname,
+    EcmaStobjbyvalue,
+    EcmaStownbyindex,
+    EcmaStownbyname,
+    EcmaStownbyvalue,
+    EcmaStsuperbyname,
+    EcmaStsuperbyvalue,
+    EcmaSupercall,
+    EcmaSupercallspread,
+    EcmaThrowconstassignment,
+    EcmaThrowdeletesuperproperty,
+    EcmaThrowdyn,
+    EcmaThrowifnotobject,
+    EcmaThrowifsupernotcorrectcall,
+    EcmaThrowpatternnoncoercible,
+    EcmaThrowthrownotexists,
+    EcmaThrowundefinedifhole,
+    EcmaTryldglobalbyname,
+    EcmaTrystglobalbyname,
     FldaiDyn,
-    GetIterator,
-    GetIteratorNext,
-    GetNextPropName,
-    GetPropertiesIterator,
     Imm,
-    ImportModule,
     IRNode,
     Jmp,
     Label,
     LdaDyn,
     LdaiDyn,
     LdaStr,
-    LdGlobalVar,
-    LdHomeObject,
-    LdLexEnv,
-    LdLexVar,
-    LdModvarByName,
-    LdObjByIndex,
-    LdObjByName,
-    LdObjByValue,
-    LdSuperByName,
-    LdSuperByValue,
     MovDyn,
-    NewLexEnv,
-    NewObjDynRange,
-    PopLexEnv,
     ResultType,
-    ReturnUndefined,
     StaDyn,
-    StArraySpread,
-    StGlobalVar,
-    StLexVar,
-    StModuleVar,
-    StObjByIndex,
-    StObjByName,
-    StObjByValue,
-    StOwnByIndex,
-    StOwnByName,
-    StOwnByValue,
-    StSuperByName,
-    StSuperByValue,
-    SuperCall,
-    SuperCallSpread,
-    ThrowConstAssignment,
-    ThrowDyn,
-    ThrowDeleteSuperProperty,
-    ThrowIfNotObject,
-    ThrowIfSuperNotCorrectCall,
-    ThrowPatternNonCoercible,
-    ThrowThrowNotExists,
-    ThrowUndefinedIfHole,
-    TryLdGlobalByName,
-    TryLdGlobalByValue,
-    TryStGlobalByName,
-    TryStGlobalByValue,
     VReg
 } from "../irnodes";
 
@@ -114,7 +120,7 @@ export function storeAccumulator(vreg: VReg): IRNode {
 }
 
 export function deleteObjProperty(obj: VReg, prop: VReg): IRNode {
-    return new DelObjProp(obj, prop);
+    return new EcmaDelobjprop(obj, prop);
 }
 
 export function moveVreg(vd: VReg, vs: VReg): IRNode {
@@ -126,111 +132,103 @@ export function jumpTarget(target: Label): IRNode {
 }
 
 export function creatDebugger(): IRNode {
-    return new Debugger();
+    return new EcmaDebugger();
 }
 
 export function throwException(): IRNode {
-    return new ThrowDyn();
+    return new EcmaThrowdyn();
 }
 
 export function throwConstAssignment(name: VReg) {
-    return new ThrowConstAssignment(name);
+    return new EcmaThrowconstassignment(name);
 }
 
 export function throwUndefinedIfHole(hole: VReg, name: VReg) {
-    return new ThrowUndefinedIfHole(hole, name);
+    return new EcmaThrowundefinedifhole(hole, name);
 }
 
 export function throwThrowNotExists() {
-    return new ThrowThrowNotExists();
+    return new EcmaThrowthrownotexists();
 }
 
 export function throwDeleteSuperProperty() {
-    return new ThrowDeleteSuperProperty();
+    return new EcmaThrowdeletesuperproperty();
 }
 
 export function newLexicalEnv(numVars: number) {
-    return new NewLexEnv(new Imm(ResultType.Int, numVars));
+    return new EcmaNewlexenvdyn(new Imm(ResultType.Int, numVars));
 }
 
 export function loadLexicalEnv() {
-    return new LdLexEnv();
+    return new EcmaLdlexenvdyn();
 }
 
 export function popLexicalEnv() {
-    return new PopLexEnv();
+    return new EcmaPoplexenvdyn();
 }
 
 export function loadLexicalVar(level: number, slot: number) {
-    return new LdLexVar(new Imm(ResultType.Int, level), new Imm(ResultType.Int, slot));
+    return new EcmaLdlexvardyn(new Imm(ResultType.Int, level), new Imm(ResultType.Int, slot));
 }
 
 export function storeLexicalVar(level: number, slot: number, value: VReg) {
-    return new StLexVar(new Imm(ResultType.Int, level), new Imm(ResultType.Int, slot), value);
+    return new EcmaStlexvardyn(new Imm(ResultType.Int, level), new Imm(ResultType.Int, slot), value);
 }
 
 export function tryLoadGlobalByName(key: string) {
-    return new TryLdGlobalByName(key);
+    return new EcmaTryldglobalbyname(key);
 }
 
 export function tryStoreGlobalByName(key: string) {
-    return new TryStGlobalByName(key);
-}
-
-export function tryLoadGlobalByValue(key: VReg) {
-    return new TryLdGlobalByValue(key);
-}
-
-export function tryStoreGlobalByValue(prop: VReg): IRNode {
-    return new TryStGlobalByValue(prop);
+    return new EcmaTrystglobalbyname(key);
 }
 
 export function loadGlobalVar(name: string) {
-    return new LdGlobalVar(name);
+    return new EcmaLdglobalvar(name);
 }
 
 export function storeGlobalVar(name: string) {
-    return new StGlobalVar(name);
+    return new EcmaStglobalvar(name);
 }
 
 export function loadObjByName(obj: VReg, key: string) {
-    return new LdObjByName(key, obj);
+    return new EcmaLdobjbyname(key, obj);
 }
 
 export function storeObjByName(obj: VReg, key: string) {
-    return new StObjByName(key, obj);
+    return new EcmaStobjbyname(key, obj);
 }
 
-export function loadObjByIndex(obj: VReg, index: VReg) {
-    return new LdObjByIndex(obj, index);
+export function loadObjByIndex(obj: VReg, index: number) {
+    return new EcmaLdobjbyindex(obj, new Imm(ResultType.Int, index));
 }
 
-export function storeObjByIndex(obj: VReg, index: VReg) {
-    return new StObjByIndex(obj, index);
+export function storeObjByIndex(obj: VReg, index: number) {
+    return new EcmaStobjbyindex(obj, new Imm(ResultType.Int, index));
 }
 
 export function loadObjByValue(obj: VReg, prop: VReg): IRNode {
-    return new LdObjByValue(obj, prop);
+    return new EcmaLdobjbyvalue(obj, prop);
 }
 
 export function storeObjByValue(obj: VReg, prop: VReg): IRNode {
-    return new StObjByValue(obj, prop);
+    return new EcmaStobjbyvalue(obj, prop);
 }
 
 export function storeOwnByName(obj: VReg, key: string): IRNode {
-    return new StOwnByName(key, obj);
+    return new EcmaStownbyname(key, obj);
 }
 
-export function storeOwnByIndex(obj: VReg, index: VReg) {
-    return new StOwnByIndex(obj, index);
+export function storeOwnByIndex(obj: VReg, index: number) {
+    return new EcmaStownbyindex(obj, new Imm(ResultType.Int, index));
 }
 
 export function storeOwnByValue(obj: VReg, value: VReg) {
-    return new StOwnByValue(obj, value);
+    return new EcmaStownbyvalue(obj, value);
 }
 
 export function throwIfSuperNotCorrectCall(num: number) {
-    return new ThrowIfSuperNotCorrectCall(new Imm(ResultType.Int, num));
+    return new EcmaThrowifsupernotcorrectcall(new Imm(ResultType.Int, num));
 }
 
 export function call(args: VReg[], passThis: boolean) {
@@ -239,147 +237,179 @@ export function call(args: VReg[], passThis: boolean) {
     if (!passThis) {
         switch (length) {
             case 1:
-                insn = new Call0Dyn(args[0]);
+                insn = new EcmaCallarg0dyn(args[0]);
                 break;
             case 2:
-                insn = new Call1Dyn(args[0], args[1]);
+                insn = new EcmaCallarg1dyn(args[0], args[1]);
                 break;
             case 3:
-                insn = new Call2Dyn(args[0], args[1], args[2]);
+                insn = new EcmaCallargs2dyn(args[0], args[1], args[2]);
                 break;
             case 4:
-                insn = new Call3Dyn(args[0], args[1], args[2], args[3]);
+                insn = new EcmaCallargs3dyn(args[0], args[1], args[2], args[3]);
                 break;
             default:
-                insn = new CalliRangeDyn(new Imm(ResultType.Int, length - 1), args);
+                insn = new EcmaCallirangedyn(new Imm(ResultType.Int, length - 1), args);
         }
     } else {
-        insn = new CalliThisRangeDyn(new Imm(ResultType.Int, length - 1), args);
+        insn = new EcmaCallithisrangedyn(new Imm(ResultType.Int, length - 1), args);
     }
 
     return insn;
 }
 
 export function newObject(args: VReg[]) {
-    return new NewObjDynRange(new Imm(ResultType.Int, args.length), args);
+    return new EcmaNewobjdynrange(new Imm(ResultType.Int, args.length), args);
 }
 
 export function getPropIterator() {
-    return new GetPropertiesIterator();
+    return new EcmaGetpropiterator();
 }
 
 export function getNextPropName(iter: VReg) {
-    return new GetNextPropName(iter);
+    return new EcmaGetnextpropname(iter);
 }
 
 export function returnUndefined() {
-    return new ReturnUndefined();
+    return new EcmaReturnundefined();
 }
 
 export function createEmptyObject() {
-    return new CreateEmptyObject();
+    return new EcmaCreateemptyobject();
 }
 
 export function createObjectHavingMethod(idx: number) {
-    return new CreateObjectHavingMethod(new Imm(ResultType.Int, idx));
+    return new EcmaCreateobjecthavingmethod(new Imm(ResultType.Int, idx));
 }
 
 export function createObjectWithBuffer(idx: number) {
-    return new CreateObjectWithBuffer(new Imm(ResultType.Int, idx));
+    return new EcmaCreateobjectwithbuffer(new Imm(ResultType.Int, idx));
 }
 
 export function setObjectWithProto(proto: VReg, object: VReg) {
-    return new SetObjectWithProto(proto, object);
+    return new EcmaSetobjectwithproto(proto, object);
 }
 
 export function copyDataProperties(dstObj: VReg, srcObj: VReg) {
-    return new CopyDataProperties(dstObj, srcObj);
+    return new EcmaCopydataproperties(dstObj, srcObj);
 }
 
 export function defineGetterSetterByValue(obj: VReg, name: VReg, getter: VReg, setter: VReg) {
-    return new DefineGetterSetterByValue(obj, name, getter, setter);
+    return new EcmaDefinegettersetterbyvalue(obj, name, getter, setter);
 }
 
 export function createEmptyArray() {
-    return new CreateEmptyArray();
+    return new EcmaCreateemptyarray();
 }
 
 export function createArrayWithBuffer(idx: number) {
-    return new CreateArrayWithBuffer(new Imm(ResultType.Int, idx));
+    return new EcmaCreatearraywithbuffer(new Imm(ResultType.Int, idx));
 }
 
 export function storeArraySpread(array: VReg, index: VReg) {
-    return new StArraySpread(array, index);
+    return new EcmaStarrayspread(array, index);
 }
 
-export function defineClassWithBuffer(id: string, idx: number, env: VReg, base: VReg) {
-    return new DefineClassWithBuffer(id, new Imm(ResultType.Int, idx), env, base);
+export function defineClassWithBuffer(id: string, idx: number, parameterLength: number, env: VReg, base: VReg) {
+    return new EcmaDefineclasswithbuffer(id, new Imm(ResultType.Int, idx), new Imm(ResultType.Int, parameterLength), env, base);
 }
 
 export function createObjectWithExcludedKeys(obj: VReg, args: VReg[]) {
-    return new CreateObjectWithExcludedKeys(new Imm(ResultType.Int, args.length - 1), obj, args);
+    return new EcmaCreateobjectwithexcludedkeys(new Imm(ResultType.Int, args.length - 1), obj, args);
 }
 
 export function throwObjectNonCoercible() {
-    return new ThrowPatternNonCoercible();
+    return new EcmaThrowpatternnoncoercible();
 }
 
 export function throwIfNotObject(v: VReg) {
-    return new ThrowIfNotObject(v);
+    return new EcmaThrowifnotobject(v);
 }
 
 export function getIterator() {
-    return new GetIterator();
+    return new EcmaGetiterator();
 }
 
 export function getIteratorNext(iter: VReg, nextMethod: VReg) {
-    return new GetIteratorNext(iter, nextMethod);
+    return new EcmaGetiteratornext(iter, nextMethod);
 }
 
 export function closeIterator(iter: VReg) {
-    return new CloseIterator(iter);
+    return new EcmaCloseiterator(iter);
 }
 
 export function superCall(num: number, start: VReg) {
-    return new SuperCall(new Imm(ResultType.Int, num), start);
+    return new EcmaSupercall(new Imm(ResultType.Int, num), start);
 }
 
 export function superCallSpread(vs: VReg) {
-    return new SuperCallSpread(vs);
+    return new EcmaSupercallspread(vs);
 }
 
 export function ldSuperByName(obj: VReg, key: string) {
-    return new LdSuperByName(key, obj);
+    return new EcmaLdsuperbyname(key, obj);
 }
 
 export function stSuperByName(obj: VReg, key: string) {
-    return new StSuperByName(key, obj);
+    return new EcmaStsuperbyname(key, obj);
 }
 
 export function stSuperByValue(obj: VReg, prop: VReg) {
-    return new StSuperByValue(obj, prop);
+    return new EcmaStsuperbyvalue(obj, prop);
 }
 
 export function ldSuperByValue(obj: VReg, prop: VReg): IRNode {
-    return new LdSuperByValue(obj, prop);
+    return new EcmaLdsuperbyvalue(obj, prop);
 }
 
 export function importModule(name: string) {
-    return new ImportModule(name);
+    return new EcmaImportmodule(name);
 }
 
 export function loadModuleVarByName(name: string, module: VReg) {
-    return new LdModvarByName(name, module);
+    return new EcmaLdmodvarbyname(name, module);
 }
 
 export function storeModuleVariable(name: string) {
-    return new StModuleVar(name);
+    return new EcmaStmodulevar(name);
 }
 
 export function copyModuleIntoCurrentModule(mod: VReg) {
-    return new CopyModule(mod);
+    return new EcmaCopymodule(mod);
 }
 
 export function loadHomeObject() {
-    return new LdHomeObject();
+    return new EcmaLdhomeobject();
+}
+
+export function defineFunc(name: string, env: VReg, paramLength: number) {
+    return new EcmaDefinefuncdyn(name, new Imm(ResultType.Int, paramLength), env);
+}
+
+export function defineAsyncFunc(name: string, env: VReg, paramLength: number) {
+    return new EcmaDefineasyncfunc(name, new Imm(ResultType.Int, paramLength), env);
+}
+
+export function defineGeneratorFunc(name: string, env: VReg, paramLength: number) {
+    return new EcmaDefinegeneratorfunc(name, new Imm(ResultType.Int, paramLength), env);
+}
+
+export function defineNCFunc(name: string, env: VReg, paramLength: number) {
+    return new EcmaDefinencfuncdyn(name, new Imm(ResultType.Int, paramLength), env);
+}
+
+export function defineMethod(name: string, env: VReg, paramLength: number) {
+    return new EcmaDefinemethod(name, new Imm(ResultType.Int, paramLength), env);
+}
+
+export function isTrue() {
+    return new EcmaIstrue();
+}
+
+export function isFalse() {
+    return new EcmaIsfalse();
+}
+
+export function createRegExpWithLiteral(pattern: string, flags: number) {
+    return new EcmaCreateregexpwithliteral(pattern, new Imm(ResultType.Int, flags));
 }

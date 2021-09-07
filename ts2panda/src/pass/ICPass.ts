@@ -46,7 +46,6 @@ class ICPassImpl {
         pg.setICSize(icSize);
     }
 }
-
 export class ICPass implements Pass {
     run(pg: PandaGen): void {
         let icPass = new ICPassImpl();

@@ -16,7 +16,10 @@
 import { CacheList } from "./base/vregisterCache";
 import { DebugInfo } from "./debuginfo";
 import {
-    BuiltinR2i,
+    EcmaCallithisrangedyn,
+    EcmaCallirangedyn,
+    EcmaNewobjdynrange,
+    EcmaCreateobjectwithexcludedkeys,
     Format,
     IRNode,
     MovDyn,
@@ -26,6 +29,11 @@ import {
     Imm
 } from "./irnodes";
 import { PandaGen } from "./pandagen";
+import {
+    isRangeInst,
+    getRangeStartVregPos,
+    getRangeExplicitVregNums,
+} from "./base/util";
 
 const MAX_VREGA = 16;
 const MAX_VREGB = 256;
@@ -176,7 +184,8 @@ class RegAllocator {
 
     checkDynRangeInstruction(irNodes: IRNode[], index: number): boolean {
         let operands = irNodes[index].operands;
-        let level = 1 << irNodes[index].formats[0][2].bitwidth;
+        let rangeRegOffset = getRangeStartVregPos(irNodes[index]);
+        let level = 1 << irNodes[index].formats[0][rangeRegOffset].bitwidth;
 
         /*
           1. "CalliDynRange 4, v255" is a valid insn, there is no need for all 4 registers numbers to be less than 255,
@@ -185,26 +194,24 @@ class RegAllocator {
           3. if v.num is bigger than 255, it means all register less than 255 has been already used, they should have been pushed
           into usedVreg
         */
-        if ((<VReg>operands[2]).num >= level) {
+        if ((<VReg>operands[1]).num >= level) {
             // needs to be adjusted.
             return false;
         }
 
-        /* the first two operands are the imm */
-        let startNum = (<VReg>operands[2]).num;
-        let i = 3;
-
-        let implicitRegNums = (irNodes[index]).operands.length - 3;
-        let tempNums = implicitRegNums;
-        while (tempNums > 0) {
-            if ((++startNum) != (<VReg>operands[i++]).num) {
+        /* the first operand is an imm */
+        let startNum = (<VReg>operands[rangeRegOffset]).num;
+        let i = rangeRegOffset + 1;
+        let implicitRegNums = (irNodes[index]).operands.length - i;
+        for (; i < (irNodes[index]).operands.length; ++i) {
+            if ((startNum + 1) != (<VReg>operands[i]).num) {
                 throw Error("Warning: VReg sequence of DynRange is not continuous. Please adjust it now.");
             }
-            tempNums--;
+            startNum++;
         }
 
         /* If the parameters are consecutive, no adjustment is required. */
-        if (i == (implicitRegNums + 3)) {
+        if (i == (irNodes[index]).operands.length) {
             return true;
         }
 
@@ -217,10 +224,12 @@ class RegAllocator {
         let tail: IRNode[] = [];
         let spills: VReg[] = [];
         let operands = irNodes[index].operands;
-        /* the first two operands are the imm */
-        let regNums = operands.length - 2;
 
-        let level = 1 << irNodes[index].formats[0][2].bitwidth;
+        /* exclude operands that are not require consecutive */
+        let rangeRegOffset = getRangeStartVregPos(irNodes[index]);
+        let regNums = operands.length - getRangeStartVregPos(irNodes[index]);
+
+        let level = 1 << irNodes[index].formats[0][rangeRegOffset].bitwidth;
         let tmp = this.findTmpVreg(level);
 
         for (let i = 0; i < regNums; i++) {
@@ -229,8 +238,8 @@ class RegAllocator {
 
             /* We need to make sure that the register input in the .range instruction is continuous(small to big). */
             head.push(new MovDyn(spill, this.usedVreg[tmp.num + i].vreg));
-            head.push(new MovDyn(this.usedVreg[tmp.num + i].vreg, <VReg>operands[i + 2]));
-            operands[i + 2] = this.usedVreg[tmp.num + i].vreg;
+            head.push(new MovDyn(this.usedVreg[tmp.num + i].vreg, <VReg>operands[i + rangeRegOffset]));
+            operands[i + rangeRegOffset] = this.usedVreg[tmp.num + i].vreg;
             tail.push(new MovDyn(this.usedVreg[tmp.num + i].vreg, spill));
         }
 
@@ -248,21 +257,11 @@ class RegAllocator {
         return (head.length + tail.length);
     }
 
-    isRangeIns(ins: IRNode) {
-        if (ins instanceof BuiltinR2i) {
-            if (((<Imm>ins.operands[0]).value == 1) || ((<Imm>ins.operands[0]).value == 3) || ((<Imm>ins.operands[0]).value == 4)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
     adjustInstructionsIfNeeded(irNodes: IRNode[]): void {
         for (let i = 0; i < irNodes.length; ++i) {
             let operands = irNodes[i].operands;
             let formats = irNodes[i].formats;
-            if (this.isRangeIns(irNodes[i])) {
+            if (isRangeInst(irNodes[i])) {
                 if (this.checkDynRangeInstruction(irNodes, i)) {
                     continue;
                 }

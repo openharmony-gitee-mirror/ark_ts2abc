@@ -15,8 +15,8 @@
 
 /**
  * The loopStatement implementation.
- * This file implements compilation process of loop statements
- * and uses Pandagen to generate bytecode.
+ * This file implement compilation process of loop statement
+ * and asks Pandagen to generate bytecode.
  *
  */
 
@@ -163,7 +163,7 @@ export function compileForStatement(stmt: ts.ForStatement, compiler: Compiler) {
         // loopIncrementor
         pandaGen.label(stmt, incLabel);
 
-        // load init from current env for the use of the next iteration
+        // load init from current env for the use of next iteration
         type variableInfo = { scope: Scope | undefined, level: number, v: Variable | undefined };
         let variables: Map<variableInfo, VReg> = new Map<variableInfo, VReg>();
         let tmpVregs: Array<VReg> = new Array<VReg>();

@@ -13,15 +13,22 @@
  * limitations under the License.
  */
 
+import { Ts2Panda } from "src/ts2panda";
 import * as ts from "typescript";
+import { Literal, LiteralBuffer, LiteralTag } from "../base/literal";
 import { LReference } from "../base/lreference";
-import { isUndefinedIdentifier } from "../base/util";
+import {
+    getPropName,
+    isConstantExpr,
+    Property,
+    propertyKeyAsString,
+    PropertyKind
+} from "../base/properties";
+import { getParameterLength4Ctor, getParamLengthOfFunc, isUndefinedIdentifier } from "../base/util";
 import { CacheList, getVregisterCache } from "../base/vregisterCache";
 import { Compiler } from "../compiler";
 import { createArrayFromElements } from "../expression/arrayLiteralExpression";
 import { createMethodOrAccessor } from "../expression/objectLiteralExpression";
-import { Literal, LiteralBuffer, LiteralTag } from "../base/literal";
-import { getPropName, isConstantExpr, Property, propertyKeyAsString, PropertyKind } from "../base/properties";
 import { findOuterNodeOfParenthesis } from "../expression/parenthesizedExpression";
 import {
     VReg
@@ -56,10 +63,6 @@ export function compileClassDeclaration(compiler: Compiler, stmt: ts.ClassLikeDe
 
     for (; propertyIndex < properties.length; propertyIndex++) {
         let prop = properties[propertyIndex];
-        let index = propertyIndex;
-        if (!hasConstructor) {
-            index = propertyIndex + 1;
-        }
         let tmpVreg = pandaGen.getTemp();
         if (prop.getKind() == PropertyKind.Constant) {
             staticItemsNum++;
@@ -80,8 +83,9 @@ export function compileClassDeclaration(compiler: Compiler, stmt: ts.ClassLikeDe
             }
 
             if (ts.isMethodDeclaration(prop.getValue())) {
-                let methodLiteral = new Literal(LiteralTag.METHOD, compiler.getCompilerDriver().getFuncInternalName(<ts.MethodDeclaration>prop.getValue()));
-                classBuffer.addLiterals(methodLiteral);
+                let methodLiteral = new Literal(LiteralTag.METHOD, compiler.getCompilerDriver().getFuncInternalName(<ts.MethodDeclaration>prop.getValue(), compiler.getRecorder()));
+                let affiliateLiteral = new Literal(LiteralTag.METHODAFFILIATE, getParamLengthOfFunc(<ts.MethodDeclaration>prop.getValue()));
+                classBuffer.addLiterals(methodLiteral, affiliateLiteral);
             } else {
                 if (!ts.isConstructorDeclaration(prop.getValue())) {
                     let valLiteral = new Literal(LiteralTag.NULLVALUE, null);
@@ -105,7 +109,7 @@ export function compileClassDeclaration(compiler: Compiler, stmt: ts.ClassLikeDe
 
     createClassLiteralBuf(compiler, classBuffer, stmt, [baseVreg, classReg]);
 
-    compileUnCompiledProperty(compiler, properties, classReg, hasConstructor);
+    compileUnCompiledProperty(compiler, properties, classReg);
     pandaGen.loadAccumulator(stmt, classReg);
 
     if (stmt.name) {
@@ -173,16 +177,12 @@ export function AddCtor2Class(recorder: Recorder, classNode: ts.ClassLikeDeclara
     recorder.recordFunctionParameters(ctorNode);
 }
 
-function compileUnCompiledProperty(compiler: Compiler, properties: Property[], classReg: VReg, hasConstructor: boolean) {
+function compileUnCompiledProperty(compiler: Compiler, properties: Property[], classReg: VReg) {
     let pandaGen = compiler.getPandaGen();
     for (let propertyIndex = 0; propertyIndex < properties.length; propertyIndex++) {
         let prop = properties[propertyIndex];
         if (prop.isCompiled()) {
             continue;
-        }
-        let index = propertyIndex;
-        if (!hasConstructor) {
-            index = propertyIndex + 1;
         }
 
         switch (prop.getKind()) {
@@ -235,7 +235,8 @@ function createClassLiteralBuf(compiler: Compiler, classBuffer: LiteralBuffer,
     let internalName = compiler.getCompilerDriver().getInternalNameForCtor(stmt);
     classLiteralBuf.push(classBuffer);
 
-    pandaGen.defineClassWithBuffer(stmt, internalName, buffIdx, vregs[0]);
+    let parameterLength = getParameterLength4Ctor(stmt);
+    pandaGen.defineClassWithBuffer(stmt, internalName, buffIdx, parameterLength, vregs[0]);
     pandaGen.storeAccumulator(stmt, vregs[1]);
 }
 
@@ -577,7 +578,7 @@ function compileComputedProperty(compiler: Compiler, prop: Property, classReg: V
             break;
         }
         default:
-            throw new Error("unrecognized computed property");
+            break;
     }
     pandaGen.freeTemps(keyReg);
 }
@@ -698,15 +699,7 @@ export function shouldReturnThisForConstruct(stmt: ts.ReturnStatement): boolean 
         return false;
     }
 
-    if (!expr) {
-        return true;
-    }
-
-    if (isUndefinedIdentifier(expr)) {
-        return true;
-    }
-
-    if (expr.kind == ts.SyntaxKind.ThisKeyword) {
+    if (!expr || isUndefinedIdentifier(expr) || expr.kind == ts.SyntaxKind.ThisKeyword) {
         return true;
     }
 
@@ -714,25 +707,6 @@ export function shouldReturnThisForConstruct(stmt: ts.ReturnStatement): boolean 
 }
 
 export function compileSuperProperty(compiler: Compiler, expr: ts.Expression, thisReg: VReg, prop: VReg | string | number) {
-    // to make sure loading "this" correctly
-    let curScope = <Scope>compiler.getCurrentScope();
-    let { scope, level, v } = curScope.find("this");
-    if (scope && level >= 0) {
-        let needSetLexVar: boolean = false;
-        while (curScope != scope) {
-            if (curScope instanceof VariableScope) {
-                needSetLexVar = true;
-                break;
-            }
-            curScope = <Scope>curScope.getParent();
-        }
-
-        if (needSetLexVar) {
-            scope.setLexVar(<Variable>v, curScope);
-        }
-
-    }
-
     checkValidUseSuperBeforeSuper(compiler, expr);
     let pandaGen = compiler.getPandaGen();
     compiler.getThis(expr, thisReg);

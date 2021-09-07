@@ -41,7 +41,7 @@ export class SwitchBase {
             let caseLabel = new Label();
             this.caseLabels.push(caseLabel);
         }
-        // switchStatements don't have continue target
+        // switchStatements doesn't have continue target
         // so we use the uplevel continue label as it's continue target.
         let labelTarget = new LabelTarget(switchEndLabel, LabelTarget.getCloseContinueTarget());
         LabelTarget.pushLabelTarget(labelTarget);

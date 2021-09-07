@@ -29,7 +29,7 @@ declare_args() {
 
 if (build_public_version) {
   nodejs_dir = "//prebuilts/build-tools/common/nodejs"
-  node_modules = "//prebuilts/build-tools/common/ts2abc/node_modules"
+  node_modules = ""
 } else {
   nodejs_dir = "//prebuilts/ace-toolkit/nodejs"
   node_modules = "//prebuilts/ace-toolkit/ace-loader/panda/node_modules"
@@ -85,8 +85,6 @@ template("ts2abc_gen_file") {
       rebase_path("${node_path}"),
       "--frontend-tool-path",
       rebase_path("${ts2abc_build_path}"),
-      "--node-modules",
-      rebase_path("${node_modules}"),
       "--plugin-path",
       invoker.plugin_path,
       "--plugin-name",
@@ -97,6 +95,12 @@ template("ts2abc_gen_file") {
       invoker.package_name,
     ]
 
+    if (build_public_version == false) {
+      args += [
+        "--node-modules",
+        rebase_path("${node_modules}"),
+      ]
+    }
     outputs = invoker.out_puts
   }
 }
@@ -136,14 +140,18 @@ template("ts2abc_gen_abc") {
       rebase_path("${node_path}"),
       "--frontend-tool-path",
       rebase_path("${ts2abc_build_path}"),
-      "--node-modules",
-      rebase_path("${node_modules}"),
     ]
 
     if (defined(invoker.extra_args)) {
       args += invoker.extra_args
     }
 
+    if (build_public_version == false) {
+      args += [
+        "--node-modules",
+        rebase_path("${node_modules}"),
+      ]
+    }
     if (defined(invoker.in_puts)) {
       inputs = invoker.in_puts
     }

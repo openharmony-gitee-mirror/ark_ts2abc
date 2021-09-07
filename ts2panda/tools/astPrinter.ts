@@ -77,7 +77,7 @@ export namespace AST {
         }
 
         function isFile(node: any): node is ts.SourceFile {
-            return ((typeof (node) === "object") && ("kind" in node) && (node.kind == ts.SyntaxKind.SourceFile));
+            return ((typeof (node) === "object") && ("kind" in node) && (node.kind == 290));
         }
 
         function Array2String(name: (undefined | string), array: ts.Node[], tab: number): string {
