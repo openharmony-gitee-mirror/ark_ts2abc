@@ -183,7 +183,7 @@ You can run  **node --expose-gc  _your\_path_\_to/index.js \[options\]  _your\_f
 
 ## Repositories Involved<a name="section1371113476307"></a>
 
-[ARK Runtime Subsystem](https://gitee.com/wanyanglan/ark_js_runtime/blob/master/docs/ARK-Runtime-Subsystem.md)
+[ARK Runtime Subsystem](https://gitee.com/openharmony/ark_js_runtime/blob/master/docs/ARK-Runtime-Subsystem.md)
 
 [ark/runtime\_core](https://gitee.com/openharmony/ark_runtime_core/blob/master/README.md)
 
