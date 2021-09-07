@@ -42,6 +42,7 @@ DEFAULT_MODE = 2
 
 TEST_ES5_DIR = os.path.join(DATA_DIR, "test_es51")
 TEST_ES2015_DIR = os.path.join(DATA_DIR, "test_es2015")
+TEST_CI_DIR = os.path.join(DATA_DIR, "test_CI")
 
 DEFAULT_ARK_FRONTEND_TOOL = os.path.join(ARK_DIR, "build", "src", "index.js")
 DEFAULT_ARK_TOOL = os.path.join(ARK_DIR, "..", "ark_js_runtime", "ark_js_vm")
@@ -57,6 +58,7 @@ DEFAULT_TIMEOUT = 60000
 
 ES5_LIST_FILE = os.path.join("test262", "es5_tests.txt")
 ES2015_LIST_FILE = os.path.join("test262", "es2015_tests.txt")
+CI_LIST_FILE = os.path.join("test262", "CI_tests.txt")
 
 TEST262_GIT_HASH = "9ca13b12728b7e0089c7eb03fa2bd17f8abe297f"
 HARNESS_GIT_HASH = "9c499f028eb24e67781435c0bb442e00343eb39d"

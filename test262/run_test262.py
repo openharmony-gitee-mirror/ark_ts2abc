@@ -49,6 +49,8 @@ def parse_args():
                         help='Run test262 - ES2015. ' +
                         'all: Contains all use cases for ES5 and ES2015' +
                         'only: Only include use cases for ES2015')
+    parser.add_argument('--ci-build', action='store_true',
+                        help='Run test262 ES2015 filter cases for build version')
     parser.add_argument('--esnext', action='store_true',
                         help='Run test262 - ES.next.')
     parser.add_argument('--engine', metavar='FILE',
@@ -112,6 +114,7 @@ def init(args):
     remove_dir(BASE_OUT_DIR)
     remove_dir(TEST_ES5_DIR)
     remove_dir(TEST_ES2015_DIR)
+    remove_dir(TEST_CI_DIR)
     get_all_skip_tests(SKIP_LIST_FILE)
     excuting_npm_install(args)
 
@@ -205,6 +208,8 @@ class TestPrepare():
             self.out_dir = os.path.join(BASE_OUT_DIR, "test_es51")
         elif self.args.es2015:
             self.out_dir = os.path.join(BASE_OUT_DIR, "test_es2015")
+        elif self.args.ci_build:
+            self.out_dir = os.path.join(BASE_OUT_DIR, "test_CI")
         else:
             self.out_dir = os.path.join(BASE_OUT_DIR, "test")
 
@@ -216,6 +221,8 @@ class TestPrepare():
             self.args.dir = TEST_ES5_DIR
         elif self.args.es2015:
             self.args.dir = TEST_ES2015_DIR
+        elif self.args.ci_build:
+            self.args.dir = TEST_CI_DIR
         else:
             self.args.dir = os.path.join(DATA_DIR, "test")
 
@@ -230,6 +237,8 @@ class TestPrepare():
             dstdir = os.path.join(TEST_ES5_DIR, file)
         elif self.args.es2015:
             dstdir = os.path.join(TEST_ES2015_DIR, file)
+        elif self.args.ci_build:
+            dstdir = os.path.join(TEST_CI_DIR, file)
         subprocess.getstatusoutput("cp %s %s" % (srcdir, dstdir))
 
     def collect_tests(self):
@@ -272,6 +281,9 @@ class TestPrepare():
         elif self.args.es2015:
             test_dir = TEST_ES2015_DIR
             files = self.prepare_es2015_tests()
+        elif self.args.ci_build:
+            test_dir = TEST_CI_DIR
+            files = self.get_tests_from_file(CI_LIST_FILE)
 
         for file in files:
             path = os.path.split(file)[0]
@@ -291,6 +303,9 @@ class TestPrepare():
         elif self.args.es2015:
             self.prepare_test_suit()
             src_dir = TEST_ES2015_DIR
+        elif self.args.ci_build:
+            self.prepare_test_suit()
+            src_dir = TEST_CI_DIR
         elif self.args.esnext:
             git_checkout(ESNEXT_GIT_HASH, DATA_DIR)
         else:
