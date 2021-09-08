@@ -58,7 +58,7 @@ ark_gen_file("ts2abc_irnodes_ts") {
   output_file = "$src_dir/irnodes.ts"
   extra_dependencies = [
     "$ts2abc_root:ts2abc_src",
-    "$ark_root/isa:isa_combine"
+    "$ark_root/isa:isa_combine",
   ]
 }
 
@@ -80,13 +80,6 @@ action("npm_run_build") {
     "--node",
     rebase_path(node_path),
   ]
-
-  if (build_public_version == false) {
-    args += [
-      "--node-modules",
-      rebase_path(node_modules),
-    ]
-  }
 
   if (is_linux) {
     args += [
