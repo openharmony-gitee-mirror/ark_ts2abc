@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-#coding: utf-8
+# coding: utf-8
 
 """
 Copyright (c) 2021 Huawei Device Co., Ltd.
@@ -22,7 +22,6 @@ import os
 import subprocess
 import argparse
 import platform
-import shutil
 
 
 def parse_args():
@@ -51,7 +50,7 @@ def set_env(node_dir):
     os.environ["PATH"] = f'{node_dir}{jsoner_format}{os.environ["PATH"]}'
 
 
-def run_command(cmd, execution_path):
+def run_command(cmd, execution_path=os.getcwd()):
     print(" ".join(cmd) + " | execution_path: " + execution_path)
     proc = subprocess.Popen(cmd, cwd=execution_path)
     ret = proc.wait()
@@ -61,14 +60,14 @@ def run_command(cmd, execution_path):
 def node_modules(options):
     src_dir = options.src_dir
     dist_dir = options.dist_dir
-    shutil.copy(os.path.join(src_dir, "package.json"),
-                os.path.join(dist_dir, "package.json"))
-    shutil.copy(os.path.join(src_dir, "package-lock.json"),
-                os.path.join(dist_dir, "package-lock.json"))
+    run_command(['cp', '-f', os.path.join(src_dir, "package.json"),
+                 os.path.join(dist_dir, "package.json")])
+    run_command(['cp', '-f', os.path.join(src_dir, "package-lock.json"),
+                 os.path.join(dist_dir, "package-lock.json")])
 
     if options.node_modules:
-        shutil.copytree(options.node_modules,
-                        os.path.join(dist_dir, "node_modules"))
+        run_command(['cp', '-rf', options.node_modules,
+                     os.path.join(dist_dir, "node_modules")])
     else:
         run_command(['npm', 'install'], dist_dir)
 
@@ -92,6 +91,5 @@ def npm_run_build(options):
 if __name__ == "__main__":
     ARGS = parse_args()
     set_env(ARGS.node)
-    if not os.path.exists(os.path.join(ARGS.dist_dir, 'node_modules')):
-        node_modules(ARGS)
+    node_modules(ARGS)
     npm_run_build(ARGS)

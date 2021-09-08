@@ -79,6 +79,8 @@ action("npm_run_build") {
     rebase_path(target_out_dir),
     "--node",
     rebase_path(node_path),
+    "--node-modules",
+    rebase_path(node_modules),
   ]
 
   if (is_linux) {

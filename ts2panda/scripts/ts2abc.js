@@ -21,23 +21,23 @@ const spawn = require('child_process').spawn;
 let isWin = !1;
 let isMac = !1;
 
-const ark_dir = path.resolve(__dirname);
+const arkDir = path.resolve(__dirname);
 
-if (fs.existsSync(path.join(ark_dir, "build-win"))) {
+if (fs.existsSync(path.join(arkDir, 'build-win'))) {
     isWin = !0;
-} else if (fs.existsSync(path.join(ark_dir, "build-mac"))) {
+} else if (fs.existsSync(path.join(arkDir, 'build-mac'))) {
     isMac = !0;
-} else if (!fs.existsSync(path.join(ark_dir, "build"))) {
-    throw Error("find build fail").message;
+} else if (!fs.existsSync(path.join(arkDir, 'build'))) {
+    throw Error('find build fail').message;
 }
 
 let js2abc;
 if (isWin) {
-    js2abc = path.join(ark_dir, 'build-win', 'bin', "js2abc.exe");
+    js2abc = path.join(arkDir, 'build-win', 'bin', 'js2abc.exe');
 } else if (isMac) {
-    js2abc = path.join(ark_dir, 'build-mac', 'bin', "js2abc");
+    js2abc = path.join(arkDir, 'build-mac', 'bin', 'js2abc');
 } else {
-    js2abc = path.join(ark_dir, 'build', 'bin', "js2abc");
+    js2abc = path.join(arkDir, 'build', 'bin', 'js2abc');
 }
 
 let args = process.argv.splice(2);

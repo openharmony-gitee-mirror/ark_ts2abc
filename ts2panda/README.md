@@ -1,5 +1,5 @@
 ### ts2panda
-ts2panda aims to translate JavaScript source files into Ark bytecode which could be executed by the Ark runtime.
+ts2panda aims to translate JavaScript source files into ARK bytecode which could be executed by the ARK runtime.
 
 The whole converter could be splited into several phases.
 * tsc(TypeScript compiler) automatically builds the AST for us
@@ -11,7 +11,7 @@ The whole converter could be splited into several phases.
     * [panda binary dumper](doc/binary_dumper.md)
 
 ### Run a case
-The whole Ark project needs to be built before running cases.
+The whole ARK project needs to be built before running cases.
 #### dump panda binary
 ```
 node --expose-gc ../../out/release/clang_x64/ark/ark/build/src/index.js <your/path/to/case_jsFile> <--> <--output> <output-filename>
