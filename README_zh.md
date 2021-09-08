@@ -183,7 +183,7 @@ ts2abc组件将JavaScript文件转换为方舟字节码文件，命令行格式�
 
 ## 相关仓<a name="section1371113476307"></a>
 
-[方舟运行时子系统](https://gitee.com/openharmony/ark_js_runtime/blob/master/docs/%E6%96%B9%E8%88%9F%E8%BF%90%E8%A1%8C%E6%97%B6%E5%AD%90%E7%B3%BB%E7%BB%9F.md)
+[方舟运行时子系统](https://gitee.com/openharmony/ark_js_runtime/blob/master/docs/ARK-Runtime-Subsystem-zh.md)
 
 [ark/runtime\_core](https://gitee.com/openharmony/ark_runtime_core/blob/master/README_zh.md)
 
