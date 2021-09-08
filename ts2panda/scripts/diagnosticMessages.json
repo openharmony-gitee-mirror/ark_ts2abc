@@ -511,5 +511,9 @@
     "Lexical declaration 'const' not allowed in statement position": {
         "category": "Error",
         "code": 19009
+    },
+    "Invalid regular expression flag '{0}'":{
+        "category": "Error",
+        "code": 19010
     }
 }

@@ -439,14 +439,14 @@ export class FunctionScope extends VariableScope {
         LOGD(this.debugTag, "functionscope.add (" + name + "), kind:" + declKind);
 
         if (declKind == VarDeclarationKind.NONE) {
-            // the variable declared without anything should be global
+            // the variable declared without anything should be gloabal
             // See EcmaStandard: 13.3.2 Variable Statement
             let globalScope = this.getRootScope();
             if (globalScope instanceof GlobalScope || globalScope instanceof ModuleScope) {
                 v = globalScope.add(name, declKind);
             } else {
                 v = undefined;
-                throw new Error("Error: global variable must be defined in global scope");
+                throw new Error("Error: global variable must define in globalscope");
             }
         } else if (declKind == VarDeclarationKind.VAR || declKind == VarDeclarationKind.FUNCTION) {
             v = new LocalVariable(declKind, name);
@@ -487,11 +487,9 @@ export class LocalScope extends Scope {
                 return undefined;
             }
         } else if (declKind == VarDeclarationKind.VAR) {
-            /**
-             * the variable declared without anything should be accessible
-             * in all parent scopes so delegate creation to the parent
-             * See EcmaStandard: 13.3.2 Variable Statement
-             */
+            // the variable declared without anything should be accessible
+            // in all parent scopes so delegate creation to the parent
+            // See EcmaStandard: 13.3.2 Variable Statement
             let functionScope = this.getNearestVariableScope();
             v = functionScope!.add(name, declKind);
         } else {

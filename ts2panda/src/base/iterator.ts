@@ -42,7 +42,7 @@ export class Iterator {
         pandaGen.getIterator(this.node);
         pandaGen.storeAccumulator(this.node, iterator);
 
-        // get the next method
+        // get next method
         pandaGen.loadObjProperty(this.node, iterator, "next");
         pandaGen.storeAccumulator(this.node, this.iterRecord.nextMethod);
     }
@@ -52,7 +52,7 @@ export class Iterator {
      *  if (!isObject(iterResult)) {
      *      throw TypeError
      *  }
-     **/
+     * */ 
     callNext(iterResult: VReg) {
         this.pandaGen.getIteratorNext(this.node, this.iterRecord.iterator, this.iterRecord.nextMethod);
         this.pandaGen.storeAccumulator(this.node, iterResult);

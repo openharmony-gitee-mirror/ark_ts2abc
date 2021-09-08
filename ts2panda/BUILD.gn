@@ -50,30 +50,21 @@ action("ts2abc_diagnostic_ts") {
 
 ark_gen_file("ts2abc_irnodes_ts") {
   template_file = "templates/irnodes.ts.erb"
-  data_file = "$ark_root/isa/isa.yaml"
+  data_file = "$root_gen_dir/isa/isa.yaml"
   requires = [
     "$ark_root/isa/isapi.rb",
     "$ark_root/libpandafile/pandafile_isapi.rb",
   ]
   output_file = "$src_dir/irnodes.ts"
-  extra_dependencies = [ "$ts2abc_root:ts2abc_src" ]
-}
-
-ark_gen_file("ts2abc_builtinsMap_ts") {
-  template_file = "templates/builtinsMap.ts.erb"
-  data_file = "$ark_root/isa/builtins.yaml"
-  requires = [
-    "$ark_root/isa/builtinsapi.rb",
-    "//ark/js_runtime/ecmascript/ecma_builtins.rb",
+  extra_dependencies = [
+    "$ts2abc_root:ts2abc_src",
+    "$ark_root/isa:isa_combine",
   ]
-  output_file = "$src_dir/builtinsMap.ts"
-  extra_dependencies = [ "$ts2abc_root:ts2abc_src" ]
 }
 
 action("npm_run_build") {
   visibility = [ ":*" ]
   deps = [
-    "$ts2abc_root:ts2abc_builtinsMap_ts",
     "$ts2abc_root:ts2abc_diagnostic_ts",
     "$ts2abc_root:ts2abc_irnodes_ts",
     "$ts2abc_root:ts2abc_src",
@@ -227,7 +218,6 @@ if (is_mingw) {
       ":src_win",
       ":ts2abc_build_win",
     ]
-
     sources = [ "${root_out_dir}/ark/ark/build-win" ]
     outputs = [ "${root_out_dir}/ark/ark/build-win-ets" ]
     module_source_dir = "${root_out_dir}/ark/ark/build-win-ets"
@@ -285,7 +275,6 @@ if (is_mac) {
       ":src_mac",
       ":ts2abc_build_mac",
     ]
-
     sources = [ "${root_out_dir}/ark/ark/build-mac" ]
     outputs = [ "${root_out_dir}/ark/ark/build-mac-ets" ]
     module_source_dir = "${root_out_dir}/ark/ark/build-mac-ets"
@@ -303,7 +292,6 @@ ohos_copy("panda_ts2abc") {
 
 ohos_copy("panda_ts2abc_ets") {
   sources = [ "${ts2abc_root}/scripts/ts2abc.js" ]
-
   outputs = [ target_out_dir + "/$target_name/{{source_file_part}}" ]
   module_source_dir = target_out_dir + "/$target_name/"
   module_install_name = ""

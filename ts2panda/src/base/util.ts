@@ -14,10 +14,18 @@
  */
 
 import path = require("path");
-import { LocalVariable, Variable } from "src/variable";
+import { isContainConstruct } from "../statement/classStatement";
+import { LocalVariable, Variable } from "../variable";
 import * as ts from "typescript";
+import {
+    EcmaCallirangedyn,
+    EcmaCallithisrangedyn,
+    EcmaCreateobjectwithexcludedkeys,
+    EcmaNewobjdynrange,
+    IRNode
+} from "../irnodes";
 import * as jshelpers from "../jshelpers";
-import { LOGD, LOGE } from "../log";
+import { LOGD } from "../log";
 import { ModuleScope, Scope } from "../scope";
 import { isFunctionLikeDeclaration } from "../syntaxCheckHelper";
 
@@ -213,4 +221,78 @@ export function listenChildExit(child: any) {
         }
         LOGD("success to generate panda binary file");
     });
+}
+
+export function listenErrorEvent(child: any) {
+    if (!child) {
+        LOGD("child is not a valid object");
+    }
+
+    child.on('error', (err: any) => {
+        LOGD(err.toString());
+    });
+}
+
+export function isRangeInst(ins: IRNode) {
+    if (ins instanceof EcmaCallithisrangedyn ||
+        ins instanceof EcmaCallirangedyn ||
+        ins instanceof EcmaNewobjdynrange ||
+        ins instanceof EcmaCreateobjectwithexcludedkeys) {
+        return true;
+    }
+    return false;
+}
+
+export function getRangeExplicitVregNums(ins: IRNode): number {
+    if (!isRangeInst(ins)) {
+        return -1;
+    }
+    return ins instanceof EcmaCreateobjectwithexcludedkeys ? 2 : 1;
+}
+
+export function isRestParameter(parameter: ts.ParameterDeclaration) {
+    return parameter.dotDotDotToken ? true : false;
+}
+
+export function getParamLengthOfFunc(node: ts.FunctionLikeDeclaration) {
+    let length = 0;
+    let validLengthRange = true;
+    let parameters = node.parameters;
+    if (parameters) {
+        parameters.forEach(parameter => {
+            if (parameter.initializer || isRestParameter(parameter)) {
+                validLengthRange = false;
+            }
+
+            if (validLengthRange) {
+                length++;
+            }
+        })
+    }
+
+    return length;
+}
+
+export function getParameterLength4Ctor(node: ts.ClassLikeDeclaration) {
+    if (!isContainConstruct(node)) {
+        return 0;
+    }
+
+    let members = node.members;
+    let ctorNode: ts.ConstructorDeclaration;
+    for (let index = 0; index < members.length; index++) {
+        let member = members[index];
+        if (ts.isConstructorDeclaration(member)) {
+            ctorNode = member;
+        }
+    }
+
+    return getParamLengthOfFunc(ctorNode!);
+}
+
+export function getRangeStartVregPos(ins: IRNode): number {
+    if (!isRangeInst(ins)) {
+        return -1;
+    }
+    return ins instanceof EcmaCreateobjectwithexcludedkeys ? 2 : 1;
 }

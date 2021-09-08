@@ -159,7 +159,7 @@ describe("lexenv-compile-testcase in lexenv.test.ts", function() {
         let grandchildren0 = son0.getChildVariableScope();
         let parentOfSon0 = son0.getParentVariableScope();
         let bindingNodeOfSon0 = <ts.Node>son0.getBindingNode();
-        expect(grandchildren0.length == 2, "son should have two child!").to.be.true;
+        expect(grandchildren0.length == 2, "son should have two children!").to.be.true;
         expect(parentOfSon0, "son's parent should equal root!").deep.equal(globalScope);
         expect(bindingNodeOfSon0.kind, "son's parent should equal root!").deep.equal(ts.SyntaxKind.FunctionDeclaration);
         // check grandson
@@ -180,7 +180,7 @@ describe("lexenv-compile-testcase in lexenv.test.ts", function() {
         let grandchildren1 = son1.getChildVariableScope();
         let parentOfSon1 = son1.getParentVariableScope();
         let bindingNodeOfSon1 = <ts.Node>son1.getBindingNode();
-        expect(grandchildren1.length == 0, "son1 should have two child!").to.be.true;
+        expect(grandchildren1.length == 0, "son1 should have two children!").to.be.true;
         expect(parentOfSon1, "son1's parent should equal root!").deep.equal(globalScope);
         expect(bindingNodeOfSon1.kind, "son1's parent should equal root!").deep.equal(ts.SyntaxKind.FunctionExpression);
     });

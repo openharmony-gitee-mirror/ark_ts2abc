@@ -67,7 +67,7 @@ export class Ts2Panda {
                 labels.push(insLabel);
             } else if (insn instanceof BuiltinR2i) {
                 // BuiltinR2i's format is builtin.r2i imm1, imm2, v:in:top
-                // and it may represent DynRange insn so we only pass the first vreg
+                // and it may represents DynRange insn so we only pass the first vreg
                 let operands = insn.operands;
                 insImms.push((<Imm>operands[0]).value, (<Imm>operands[1]).value);
                 insRegs.push((<VReg>operands[2]).num);
@@ -169,9 +169,6 @@ export class Ts2Panda {
         let funcSignature = Ts2Panda.getFuncSignature(pg);
         let funcInsnsAndRegsNum = Ts2Panda.getFuncInsnsAndRegsNum(pg);
         let sourceFile = pg.getSourceFileDebugInfo();
-        let icSize = pg.getICSize();
-        let parameterLength = pg.getParameterLength();
-        let realName = pg.getFuncName();
 
         let variables, sourceCode;
         if (CmdOptions.isDebugMode()) {
@@ -191,9 +188,6 @@ export class Ts2Panda {
             variables,
             sourceFile,
             sourceCode,
-            icSize,
-            parameterLength,
-            realName
         );
         let catchTables = generateCatchTables(pg.getCatchMap());
         catchTables.forEach((catchTable) => {

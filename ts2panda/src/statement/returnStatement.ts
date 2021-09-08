@@ -134,9 +134,13 @@ function compileNormalReturn(stmt: ts.ReturnStatement, returnValue: VReg, compil
 }
 
 function isReturnInDerivedCtor(stmt: ts.ReturnStatement) {
-    let ctorNode = jshelpers.findAncestor(stmt, ts.isConstructorDeclaration);
-    if (ctorNode && ctorNode.parent) {
-        let classNode = <ts.ClassLikeDeclaration>ctorNode.parent;
+    let funcNode = jshelpers.getContainingFunction(stmt);
+    if (!ts.isConstructorDeclaration(funcNode)) {
+        return false;
+    }
+
+    if (funcNode && funcNode.parent) {
+        let classNode = <ts.ClassLikeDeclaration>funcNode.parent;
         if (classNode.heritageClauses) {
             return true;
         }

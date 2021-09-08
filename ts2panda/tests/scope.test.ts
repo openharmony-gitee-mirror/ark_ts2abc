@@ -246,7 +246,7 @@ describe("ScopeTest", function() {
         expect(p2FindEntry.scope).to.be.equal(func1Scope);
 
         // check global
-        expect(globalScope.hasLexEnv(), "global has lexenv").to.be.false;
+        expect(globalScope.hasLexEnv(), "gloal has lexenv").to.be.false;
         // check func1
         expect(func1Scope.hasLexEnv(), "func1 haslexenv").to.be.true;
         expect(func1Scope.getNumLexEnv(), "func1 status").to.be.equal(2);

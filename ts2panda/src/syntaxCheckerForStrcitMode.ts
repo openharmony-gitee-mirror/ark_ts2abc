@@ -58,7 +58,7 @@ function checkString(node: ts.Node, text: string) {
 }
 
 function checkStringLiteral(node: ts.StringLiteral) {
-    // Octal escape has been deprecated in ES5, but it can be used in regular expressions.
+    // Octal escape has been deprecated in ES5, but it can be used in regular expressions
     if (stringLiteralIsInRegExp(node)) {
         return;
     }
@@ -232,5 +232,4 @@ export function checkSyntaxErrorForStrictMode(node: ts.Node) {
         default:
             break;
     }
-
 }

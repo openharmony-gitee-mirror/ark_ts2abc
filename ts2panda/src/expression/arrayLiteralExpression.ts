@@ -94,7 +94,7 @@ export function createArrayFromElements(node: ts.Node, compiler: Compiler, eleme
             }
 
             if (i == elements.length - 1) {
-                // omittedExpression is the last element, we need set the length of the array
+                // omittedExpression is last element, we need set the array's length
                 if (hasSpread) {
                     pandaGen.loadAccumulator(element, indexReg);
                     pandaGen.storeObjProperty(element, arrayObj, "length");
