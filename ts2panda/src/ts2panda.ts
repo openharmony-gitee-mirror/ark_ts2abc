@@ -16,7 +16,6 @@
 import { CmdOptions } from "./cmdOptions";
 import { DebugPosInfo } from "./debuginfo";
 import {
-    BuiltinR2i,
     Imm,
     IRNode,
     Label,
@@ -27,7 +26,7 @@ import { LOGD } from "./log";
 import { PandaGen } from "./pandagen";
 import { CatchTable, Function, Ins, Signature } from "./pandasm";
 import { generateCatchTables } from "./statement/tryStatement";
-import { escapeUnicode } from "./base/util";
+import { escapeUnicode, isRangeInst, getRangeStartVregPos } from "./base/util";
 
 const dollarSign: RegExp = /\$/g;
 
@@ -65,12 +64,14 @@ export class Ts2Panda {
             if (insn instanceof Label) {
                 insLabel = Ts2Panda.labelPrefix + insn.id;
                 labels.push(insLabel);
-            } else if (insn instanceof BuiltinR2i) {
-                // BuiltinR2i's format is builtin.r2i imm1, imm2, v:in:top
-                // and it may represents DynRange insn so we only pass the first vreg
+            } else if (isRangeInst(insn)) {
+                // For DynRange insn we only pass the first vreg of continous vreg array
                 let operands = insn.operands;
-                insImms.push((<Imm>operands[0]).value, (<Imm>operands[1]).value);
-                insRegs.push((<VReg>operands[2]).num);
+                insImms.push((<Imm>operands[0]).value);
+                insRegs.push((<VReg>operands[1]).num);
+                if (getRangeStartVregPos(insn) == 2) {
+                    insRegs.push((<VReg>operands[2]).num);
+                }
             } else {
                 insn.operands.forEach((operand: OperandType) => {
                     if (operand instanceof VReg) {
