@@ -303,8 +303,6 @@ group("ark_ts2abc_build") {
     deps += [
       "${ts2abc_root}:ts2abc_build(${buildtool_linux})",
       "${ts2abc_root}:ts2abc_build_ets(${buildtool_linux})",
-      "${ts2abc_root}:ts2abc_build_win(${buildtool_win})",
-      "${ts2abc_root}:ts2abc_build_win_ets(${buildtool_win})",
     ]
   }
 }
