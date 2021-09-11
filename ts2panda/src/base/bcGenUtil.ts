@@ -96,6 +96,9 @@ import {
     MovDyn,
     ResultType,
     StaDyn,
+    EcmaStclasstoglobalrecord,
+    EcmaStconsttoglobalrecord,
+    EcmaStlettoglobalrecord,
     VReg
 } from "../irnodes";
 
@@ -412,4 +415,16 @@ export function isFalse() {
 
 export function createRegExpWithLiteral(pattern: string, flags: number) {
     return new EcmaCreateregexpwithliteral(pattern, new Imm(ResultType.Int, flags));
+}
+
+export function stLetToGlobalRecord (name: string) {
+    return new EcmaStlettoglobalrecord(name);
+}
+
+export function stConstToGlobalRecord (name: string) {
+    return new EcmaStconsttoglobalrecord(name);
+}
+
+export function stClassToGlobalRecord (name: string) {
+    return new EcmaStclasstoglobalrecord(name);
 }

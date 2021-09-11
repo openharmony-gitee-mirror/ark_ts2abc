@@ -81,6 +81,7 @@ namespace Compiler {
             module: ts.ModuleKind.CommonJS,
             strictNullChecks: true,
             skipLibCheck: true,
+            alwaysStrict: true
         };
     }
 }

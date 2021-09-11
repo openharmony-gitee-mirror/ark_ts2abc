@@ -75,6 +75,9 @@ import {
     popLexicalEnv,
     returnUndefined,
     setObjectWithProto,
+    stClassToGlobalRecord,
+    stConstToGlobalRecord,
+    stLetToGlobalRecord,
     storeAccumulator,
     storeArraySpread,
     storeGlobalVar,
@@ -1186,6 +1189,24 @@ export class PandaGen {
             node,
             createRegExpWithLiteral(pattern, flags)
         )
+    }
+
+    stLetToGlobalRecord(node: ts.Node, string_id: string) {
+        this.add(
+            node,
+            stLetToGlobalRecord(string_id));
+    }
+
+    stConstToGlobalRecord(node: ts.Node, string_id: string) {
+        this.add(
+            node,
+            stConstToGlobalRecord(string_id));
+    }
+
+    stClassToGlobalRecord(node: ts.Node, string_id: string) {
+        this.add(
+            node,
+            stClassToGlobalRecord(string_id));
     }
 
     private binaryRelation(node: ts.Node, op: BinaryOperator, lhs: VReg) {
