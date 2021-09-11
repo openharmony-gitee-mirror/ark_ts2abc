@@ -16,6 +16,7 @@
 import * as ts from "typescript";
 import { Compiler } from "src/compiler";
 import * as jshelpers from "../jshelpers";
+import { getParamLengthOfFunc } from "../base/util";
 import { CacheList, getVregisterCache } from "../base/vregisterCache";
 import { isInteger } from "./numericLiteral";
 import { PandaGen } from "../pandagen";
@@ -32,7 +33,7 @@ export function compileObjectLiteralExpression(compiler: Compiler, expr: ts.Obje
     let objReg = pandaGen.getTemp();
     let hasMethod: boolean = false;
 
-    // empty object literal expression
+    // emptyObjectLiteral
     if (properties.length == 0) {
         pandaGen.createEmptyObject(expr);
         pandaGen.storeAccumulator(expr, objReg);
@@ -81,17 +82,19 @@ function compileProperties(compiler: Compiler, properties: Property[], literalBu
 
             if (ts.isMethodDeclaration(valueNode)) {
                 if (valueNode.asteriskToken) {
-                    valLiteral = new Literal(LiteralTag.GENERATOR, compilerDriver.getFuncInternalName(valueNode));
+                    valLiteral = new Literal(LiteralTag.GENERATOR, compilerDriver.getFuncInternalName(valueNode, compiler.getRecorder()));
                 } else {
-                    valLiteral = new Literal(LiteralTag.METHOD, compilerDriver.getFuncInternalName(valueNode));
+                    valLiteral = new Literal(LiteralTag.METHOD, compilerDriver.getFuncInternalName(valueNode, compiler.getRecorder()));
                 }
+                let affiliateLiteral = new Literal(LiteralTag.METHODAFFILIATE, getParamLengthOfFunc(valueNode));
+                literalBuffer.addLiterals(nameLiteral, valLiteral, affiliateLiteral);
 
                 prop.setCompiled();
                 hasMethod = true;
             } else {
                 valLiteral = new Literal(LiteralTag.NULLVALUE, null);
+                literalBuffer.addLiterals(nameLiteral, valLiteral);
             }
-            literalBuffer.addLiterals(nameLiteral, valLiteral);
         }
 
         if (prop.getKind() == PropertyKind.Accessor) {
@@ -284,7 +287,7 @@ function setUncompiledProperties(compiler: Compiler, pandaGen: PandaGen, propert
 
 export function createMethodOrAccessor(pandaGen: PandaGen, compiler: Compiler, objReg: VReg,
                                        func: ts.MethodDeclaration | ts.GetAccessorDeclaration | ts.SetAccessorDeclaration | ts.ConstructorDeclaration) {
-    let internalName = compiler.getCompilerDriver().getFuncInternalName(func);
+    let internalName = compiler.getCompilerDriver().getFuncInternalName(func, compiler.getRecorder());
     let env = compiler.getCurrentEnv();
     if (ts.isMethodDeclaration(func) && func.asteriskToken) {
         pandaGen.defineFunction(func, func, internalName, env);

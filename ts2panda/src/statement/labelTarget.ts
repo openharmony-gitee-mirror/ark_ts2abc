@@ -79,12 +79,12 @@ export class LabelTarget {
         while (node.kind == ts.SyntaxKind.LabeledStatement) {
             let labeledStmt = <ts.LabeledStatement>node;
             let labelName = jshelpers.getTextOfIdentifierOrLiteral(labeledStmt.label);
-
-            // make sure saved label is different
+    
+            // make sure saved label is different.
             if (LabelTarget.name2LabelTarget.has(labelName)) {
                 throw new DiagnosticError(node, DiagnosticCode.Duplicate_label_0);
             }
-
+    
             LabelTarget.name2LabelTarget.set(labelName, labelTarget);
             node = node.parent;
         }

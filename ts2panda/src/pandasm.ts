@@ -72,9 +72,6 @@ export class Function {
     public variables: Array<VariableDebugInfo> | undefined;
     public sourceFile: string;
     public sourceCode: string | undefined;
-    public icSize: number;
-    public parameterLength: number;
-    public funcName: string;
 
     constructor(
         name: string,
@@ -85,9 +82,6 @@ export class Function {
         variables: Array<VariableDebugInfo> | undefined = undefined,
         sourceFile: string = "",
         sourceCode: string | undefined = undefined,
-        icSize: number = 0,
-        parameterLength: number = 0,
-        funcName: string = ""
     ) {
         this.name = name;
         this.signature = signature;
@@ -99,9 +93,6 @@ export class Function {
         this.variables = variables;
         this.sourceFile = sourceFile;
         this.sourceCode = sourceCode;
-        this.icSize = icSize;
-        this.parameterLength = parameterLength;
-        this.funcName = funcName;
     }
 }
 

@@ -21,7 +21,8 @@ export enum LiteralTag {
   METHOD = 6,
   GENERATOR = 7,
   ACCESSOR = 8,
-  NULLVALUE = 9
+  METHODAFFILIATE = 9,
+  NULLVALUE = 255
 }
 
 export class Literal {

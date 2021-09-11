@@ -128,7 +128,6 @@ export function generatePropertyFromExpr(expr: ts.ObjectLiteralExpression): Prop
                 }
 
                 let propName: number | string = <number | string>getPropName(property.name);
-
                 if (propName == "__proto__") {
                     if (!hasProto) {
                         defineProperty(propName, property.initializer, PropertyKind.Prototype, properties, namedPropertyMap);

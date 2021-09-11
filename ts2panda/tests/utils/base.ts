@@ -158,7 +158,7 @@ export function compileMainSnippet(snippet: string, pandaGen?: PandaGen, scope?:
     let compileUnits = compileAllSnippet(snippet, passes);
 
     if (compileUnits.length != 1 && !compileFunc) {
-        throw new Error("Error: please use compileMainSnippet1 for multi function compile");
+        throw new Error("Error: pls use compileMainSnippet1 for multi function compile");
     }
 
     // only return main function

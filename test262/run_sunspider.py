@@ -46,7 +46,7 @@ def parse_args():
 
 
 ARK_ARGS = "--gc-type=epsilon"
-
+ICU_PATH = f"--icu-data-path={CODE_ROOT}/third_party/icu/ohos_icu4j/data"
 ARK_TOOL = DEFAULT_ARK_TOOL
 ARK_FRONTEND_TOOL = DEFAULT_ARK_FRONTEND_TOOL
 LIBS_DIR = DEFAULT_LIBS_DIR
@@ -155,10 +155,11 @@ class ArkProgram():
         return retcode
 
     def execute(self):
+        
         os.environ["LD_LIBRARY_PATH"] = self.libs_dir
         file_name_pre = os.path.splitext(self.js_file)[0]
 
-        cmd_args = [self.ark_tool, ARK_ARGS,
+        cmd_args = [self.ark_tool, ARK_ARGS, ICU_PATH,
                     f'{file_name_pre}.abc']
         retcode = exec_command(cmd_args)
         return retcode

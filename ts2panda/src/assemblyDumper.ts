@@ -14,7 +14,6 @@
  */
 
 import {
-    BuiltinR2i,
     Imm,
     IRNode,
     IRNodeKind,
@@ -24,8 +23,10 @@ import {
 } from "./irnodes";
 import { generateCatchTables } from "./statement/tryStatement";
 import { PandaGen } from "./pandagen";
-import { CmdOptions } from "./cmdOptions";
-import { builtinsCodeMap } from "./builtinsMap";
+import {
+    isRangeInst,
+    getRangeExplicitVregNums,
+} from "./base/util";
 
 export class IntrinsicInfo {
     readonly intrinsicName: string;
@@ -59,21 +60,6 @@ export class AssemblyDumper {
         out.str += "\n";
     }
 
-    static writeIntrinsicDecl(out: any): void {
-        out.str += ".record Ecmascript.Intrinsics <external>\n";
-        AssemblyDumper.intrinsicRec.forEach((intrinsicInfo, mnemonic) => {
-            out.str += ".function " + intrinsicInfo!.returnType + " Ecmascript.Intrinsics." + mnemonic + "(";
-            let intrinsicArgNum = intrinsicInfo!.argsNum;
-            for (let i = 0; i < intrinsicArgNum; i++) {
-                out.str += "any a" + i.toString();
-                if (i != intrinsicArgNum - 1) {
-                    out.str += ", ";
-                }
-            }
-            out.str += ") <external>\n";
-        })
-    }
-
     writeFunctionHeader(): void {
         let parametersCount = this.pg.getParametersCount();
         this.output += ".function any " + this.pg.internalName + "("
@@ -90,7 +76,7 @@ export class AssemblyDumper {
         let irNodes: IRNode[] = this.pg.getInsns();
         let parametersCount = this.pg.getParametersCount();
 
-        /* the first parametersCount insns are mov.dyn insns for argument initialization,
+        /* the first parametersCount insns are move insn for argument initialization,
            we can directly dump them into text
         */
         for (let i = 0; i < parametersCount; ++i) {
@@ -113,7 +99,11 @@ export class AssemblyDumper {
             this.output += node.mnemonic + " ";
             let operands = node.operands;
             let formats = node.formats;
+            var outputRangeVregNum = getRangeExplicitVregNums(node);
             for (let j = 0; j < operands.length; ++j) {
+                if (outputRangeVregNum == 0) {
+                    break;
+                }
                 let format = formats[0];
                 let kind = format[j].kind;
                 let op = operands[j];
@@ -135,8 +125,10 @@ export class AssemblyDumper {
                         throw Error("invalid register, please check your insn!\nRegister was allocated at:\n" + v.getStackTrace() + "\n");
                     }
                     this.output += "v" + v.num.toString();
-                    if (node instanceof BuiltinR2i) {
-                        break; // we don't need to print all the registers, just the first one
+                    // we don't need to print all the registers for range inst, just the first one
+                    if (isRangeInst(node)) {
+                        outputRangeVregNum--;
+                        continue;
                     }
                 } else if (kind == OperandKind.Label) {
                     this.output += this.getLabelName(<Label>op);
@@ -145,16 +137,6 @@ export class AssemblyDumper {
                 }
                 if (j < operands.length - 1) {
                     this.output += ", ";
-                }
-            }
-            if (CmdOptions.isVariantBytecode()) {
-                if (node.mnemonic.startsWith('builtin')) {
-                    if (node.operands[0] instanceof Imm) {
-                        let subcode = node.operands[0].value;
-                        this.output += "  # " + (builtinsCodeMap as any)[node.mnemonic][subcode];
-                    } else {
-                        throw new Error("can't go here" + node.toString());
-                    }
                 }
             }
             this.output += "\n";
@@ -212,9 +194,6 @@ export class AssemblyDumper {
     static dumpHeader(): void {
         let out = { str: "" };
         AssemblyDumper.writeLanguageTag(out);
-        if (!CmdOptions.isVariantBytecode()) {
-            AssemblyDumper.writeIntrinsicDecl(out);
-        }
         console.log(out.str)
     }
 }

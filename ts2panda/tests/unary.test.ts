@@ -290,6 +290,9 @@ describe("UnaryOperationsTest", function() {
             let propReg = new VReg();
 
             let expected = [
+                // let arr = [1, 2];
+                // ...
+                // delete arr[1];
                 new LdaDyn(arrayReg),
                 new StaDyn(objReg),
                 new LdaiDyn(new Imm(ResultType.Int, 1)),

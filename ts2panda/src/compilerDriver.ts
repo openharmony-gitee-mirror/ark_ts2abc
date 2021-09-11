@@ -13,11 +13,11 @@
  * limitations under the License.
  */
 
-import * as ts from "typescript";
 import { writeFileSync } from "fs";
+import * as ts from "typescript";
 import { addVariableToScope } from "./addVariable2Scope";
 import { AssemblyDumper } from "./assemblyDumper";
-import { isAnonymousFunctionDefinition, initiateTs2abc, terminateWritePipe, listenChildExit } from "./base/util";
+import { initiateTs2abc, listenChildExit, listenErrorEvent, terminateWritePipe } from "./base/util";
 import { CmdOptions } from "./cmdOptions";
 import {
     Compiler
@@ -26,7 +26,6 @@ import { CompilerStatistics } from "./compilerStatistics";
 import { DebugInfo } from "./debuginfo";
 import { hoisting } from "./hoisting";
 import { IntrinsicExpander } from "./intrinsicExpander";
-import * as jshelpers from "./jshelpers";
 import { LOGD } from "./log";
 import { setExportBinding, setImport } from "./modules";
 import { PandaGen } from "./pandagen";
@@ -35,15 +34,15 @@ import { CacheExpander } from "./pass/cacheExpander";
 import { Recorder } from "./recorder";
 import { RegAlloc } from "./regAllocator";
 import {
+    FunctionScope,
     GlobalScope,
     ModuleScope,
     Scope,
     VariableScope
 } from "./scope";
+import { getClassNameForConstructor } from "./statement/classStatement";
 import { checkDuplicateDeclaration, checkExportEntries } from "./syntaxChecker";
 import { Ts2Panda } from "./ts2panda";
-import { findOuterNodeOfParenthesis } from "./expression/parenthesizedExpression";
-import { getClassNameForConstructor } from "./statement/classStatement";
 
 export class PendingCompilationUnit {
     constructor(
@@ -100,8 +99,8 @@ export class CompilerDriver {
         this.passes = passes;
     }
 
-    addCompilationUnit(decl: ts.FunctionLikeDeclaration, scope: Scope): string {
-        let internalName = this.getFuncInternalName(decl);
+    addCompilationUnit(decl: ts.FunctionLikeDeclaration, scope: Scope, recorder: Recorder): string {
+        let internalName = this.getFuncInternalName(decl, recorder);
         this.pendingCompilationUnits.push(
             new PendingCompilationUnit(decl, scope, internalName)
         );
@@ -123,7 +122,7 @@ export class CompilerDriver {
         })
     }
 
-    // sort all function by post order
+    // sort all function in post order
     postOrderAnalysis(scope: GlobalScope): VariableScope[] {
         let spArray: VariableScope[] = [];
         let stack: VariableScope[] = [];
@@ -150,9 +149,7 @@ export class CompilerDriver {
 
             this.getASTStatistics(node, statics);
             statics.forEach((element, idx) => {
-                if (element > 0) {
-                    LOGD(this.kind2String(idx) + " = " + element);
-                }
+                if (element > 0) LOGD(this.kind2String(idx) + " = " + element);
             });
         }
 
@@ -162,6 +159,9 @@ export class CompilerDriver {
         if (!CmdOptions.isAssemblyMode()) {
             this.initiateTs2abcChildProcess();
             let ts2abcProc = this.getTs2abcProcess();
+            listenChildExit(ts2abcProc);
+            listenErrorEvent(ts2abcProc);
+
             try {
                 Ts2Panda.dumpCmdOptions(ts2abcProc);
 
@@ -169,26 +169,22 @@ export class CompilerDriver {
                     let unit: PendingCompilationUnit = this.pendingCompilationUnits[i];
                     this.compileImpl(unit.decl, unit.scope, unit.internalName, recorder);
                 }
-    
+
                 Ts2Panda.dumpStringsArray(ts2abcProc);
                 Ts2Panda.dumpConstantPool(ts2abcProc);
-    
+
                 terminateWritePipe(ts2abcProc);
-    
                 if (CmdOptions.isEnableDebugLog()) {
                     let jsonFileName = this.fileName.substring(0, this.fileName.lastIndexOf(".")).concat(".json");
                     writeFileSync(jsonFileName, Ts2Panda.jsonString);
                     LOGD("Successfully generate ", `${jsonFileName}`);
                 }
-    
+
                 Ts2Panda.clearDumpData();
             } catch (err) {
                 terminateWritePipe(ts2abcProc);
-                ts2abcProc.kill();
                 throw err;
             }
-
-            listenChildExit(ts2abcProc);
         } else {
             for (let i = 0; i < this.pendingCompilationUnits.length; i++) {
                 let unit: PendingCompilationUnit = this.pendingCompilationUnits[i];
@@ -280,7 +276,7 @@ export class CompilerDriver {
         let postOrderVariableScopes = this.postOrderAnalysis(topLevelScope);
 
         for (let variableScope of postOrderVariableScopes) {
-            this.addCompilationUnit(<ts.FunctionLikeDeclaration>variableScope.getBindingNode(), variableScope);
+            this.addCompilationUnit(<ts.FunctionLikeDeclaration>variableScope.getBindingNode(), variableScope, recorder);
         }
 
         return recorder;
@@ -316,47 +312,40 @@ export class CompilerDriver {
      * Internal name is used to indentify a function in panda file
      * Runtime uses this name to bind code and a Function object
      */
-    getFuncInternalName(node: ts.SourceFile | ts.FunctionLikeDeclaration): string {
-        let name: string = '';
+    getFuncInternalName(node: ts.SourceFile | ts.FunctionLikeDeclaration, recorder: Recorder): string {
         if (ts.isSourceFile(node)) {
-            name = "main";
+            return "func_main_0";
         } else if (ts.isConstructorDeclaration(node)) {
             let classNode = node.parent;
             return this.getInternalNameForCtor(classNode);
         } else {
             let funcNode = <ts.FunctionLikeDeclaration>node;
-            if (isAnonymousFunctionDefinition(funcNode)) {
-                let outerNode = findOuterNodeOfParenthesis(funcNode);
-                if (ts.isVariableDeclaration(outerNode)) {
-                    let id = outerNode.name;
-                    if (ts.isIdentifier(id)) {
-                        name = jshelpers.getTextOfIdentifierOrLiteral(id);
-                    }
-                } else if (ts.isBinaryExpression(outerNode)) {
-                    if (outerNode.operatorToken.kind == ts.SyntaxKind.EqualsToken && ts.isIdentifier(outerNode.left)) {
-                        name = jshelpers.getTextOfIdentifierOrLiteral(outerNode.left);
-                    }
+            let name: string = (<FunctionScope>recorder.getScopeOfNode(funcNode)).getFuncName();
+            if (name == '') {
+                return `#${this.getFuncId(funcNode)}#`;
+            }
+
+            if (name == "func_main_0") {
+                return `#${this.getFuncId(funcNode)}#${name}`;
+            }
+
+            let funcNameMap = recorder.getFuncNameMap();
+            if (funcNameMap.has(name)) {
+                let freq = <number>funcNameMap.get(name);
+                if (freq > 1) {
+                    name = `#${this.getFuncId(funcNode)}#${name}`;
                 }
             } else {
-                if (ts.isIdentifier(funcNode.name!)) {
-                    name = jshelpers.getTextOfIdentifierOrLiteral(funcNode.name);
-                }
+                throw new Error("the function name is missing from the name map");
             }
-        }
 
-        let internalName = "func_";
-        if (name == '') {
-            internalName += this.getFuncId(node);
-        } else {
-            internalName += name + '_' + this.getFuncId(node);
+            return name;
         }
-
-        return internalName;
     }
 
     getInternalNameForCtor(node: ts.ClassLikeDeclaration) {
         let name = getClassNameForConstructor(node);
-        return "func_" + name + "_" + this.getFuncId(node);
+        return `#${this.getFuncId(node)}#${name}`;
     }
 
     writeBinaryFile(pandaGen: PandaGen) {

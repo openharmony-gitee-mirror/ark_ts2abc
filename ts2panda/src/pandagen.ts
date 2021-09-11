@@ -38,15 +38,22 @@ import {
     createObjectHavingMethod,
     createObjectWithBuffer,
     createObjectWithExcludedKeys,
-    setObjectWithProto,
+    createRegExpWithLiteral,
+    defineAsyncFunc,
     defineClassWithBuffer,
+    defineFunc,
+    defineGeneratorFunc,
     defineGetterSetterByValue,
+    defineMethod,
+    defineNCFunc,
     deleteObjProperty,
     getIterator,
     getIteratorNext,
     getNextPropName,
     getPropIterator,
     importModule,
+    isFalse,
+    isTrue,
     jumpTarget,
     ldSuperByName,
     ldSuperByValue,
@@ -67,6 +74,7 @@ import {
     newObject,
     popLexicalEnv,
     returnUndefined,
+    setObjectWithProto,
     storeAccumulator,
     storeArraySpread,
     storeGlobalVar,
@@ -82,88 +90,80 @@ import {
     stSuperByValue,
     superCall,
     superCallSpread,
-    throwException,
     throwDeleteSuperProperty,
+    throwException,
     throwIfNotObject,
     throwIfSuperNotCorrectCall,
     throwObjectNonCoercible,
     throwThrowNotExists,
     throwUndefinedIfHole,
     tryLoadGlobalByName,
-    tryLoadGlobalByValue,
-    tryStoreGlobalByName,
-    tryStoreGlobalByValue
+    tryStoreGlobalByName
 } from "./base/bcGenUtil";
+import { LiteralBuffer } from "./base/literal";
+import { getParamLengthOfFunc } from "./base/util";
 import {
     CacheList,
     getVregisterCache,
     VregisterCache
 } from "./base/vregisterCache";
 import { CmdOptions } from "./cmdOptions";
-import { Compiler } from "./compiler";
 import {
     DebugInfo,
     NodeKind,
     VariableDebugInfo
 } from "./debuginfo";
 import { isInteger } from "./expression/numericLiteral";
-import { LiteralBuffer } from "./base/literal";
 import {
-    Add2Dyn,
-    And2Dyn,
-    Ashr2Dyn,
-    AsyncFunctionAwaitUncaughtDyn,
-    AsyncFunctionEnterDyn,
-    AsyncFunctionRejectDyn,
-    AsyncFunctionResolveDyn,
-    CallSpread,
-    CopyRestArgs,
-    CreateGeneratorObjDyn,
-    CreateIterResultObjectDyn,
-    DecDyn,
-    DefineAsyncFuncDyn,
-    DefinefuncDyn,
-    DefineGeneratorfuncDyn,
-    DefineMethod,
-    DefineNCFuncDyn,
-    Div2Dyn,
-    EqDyn,
-    ExpDyn,
-    GetResumeModeDyn,
-    GetTemplateObject,
-    GetUnmappedArgs,
-    GreaterDyn,
-    GreaterEqDyn,
+    EcmaAdd2dyn,
+    EcmaAnd2dyn,
+    EcmaAshr2dyn,
+    EcmaAsyncfunctionawaituncaught,
+    EcmaAsyncfunctionenter,
+    EcmaAsyncfunctionreject,
+    EcmaAsyncfunctionresolve,
+    EcmaCallspreaddyn,
+    EcmaCopyrestargs,
+    EcmaCreategeneratorobj,
+    EcmaCreateiterresultobj,
+    EcmaDecdyn,
+    EcmaDiv2dyn,
+    EcmaEqdyn,
+    EcmaExpdyn,
+    EcmaGetresumemode,
+    EcmaGettemplateobject,
+    EcmaGetunmappedargs,
+    EcmaGreaterdyn,
+    EcmaGreatereqdyn,
+    EcmaIncdyn,
+    EcmaInstanceofdyn,
+    EcmaIsindyn,
+    EcmaLessdyn,
+    EcmaLesseqdyn,
+    EcmaMod2dyn,
+    EcmaMul2dyn,
+    EcmaNegdyn,
+    EcmaNewobjspreaddyn,
+    EcmaNotdyn,
+    EcmaNoteqdyn,
+    EcmaOr2dyn,
+    EcmaResumegenerator,
+    EcmaShl2dyn,
+    EcmaShr2dyn,
+    EcmaStricteqdyn,
+    EcmaStrictnoteqdyn,
+    EcmaSub2dyn,
+    EcmaSuspendgenerator,
+    EcmaTonumber,
+    EcmaTypeofdyn,
+    EcmaXor2dyn,
     Imm,
-    IncDyn,
-    InstanceOfDyn,
     IRNode,
-    IsInDyn,
     Jeqz,
     Label,
-    LessDyn,
-    LessEqDyn,
-    Mod2Dyn,
-    Mul2Dyn,
-    NegDyn,
-    NewobjSpread,
-    NotDyn,
-    NotEqDyn,
-    Or2Dyn,
     ResultType,
-    ResumeGeneratorDyn,
     ReturnDyn,
-    Shl2Dyn,
-    Shr2Dyn,
-    StrictEqDyn,
-    StrictNotEqDyn,
-    Sub2Dyn,
-    SuspendGeneratorDyn,
-    Toboolean,
-    Tonumber,
-    TypeOfDyn,
-    VReg,
-    Xor2Dyn
+    VReg
 } from "./irnodes";
 import {
     VariableAccessLoad,
@@ -397,7 +397,6 @@ export class PandaGen {
                 loadLexicalEnv(),
                 storeAccumulator(env)
             )
-
         }
     }
 
@@ -428,9 +427,21 @@ export class PandaGen {
 
     loadObjProperty(node: ts.Node, obj: VReg, prop: VReg | string | number) {
         switch (typeof (prop)) {
-            case "number":
-                this.loadObjByIndex(node, obj, prop);
+            case "number": {
+                if (isInteger(prop)) {
+                    this.loadObjByIndex(node, obj, prop);
+                } else {
+                    let propReg = this.getTemp();
+                    this.add(
+                        node,
+                        loadAccumulatorFloat(prop),
+                        storeAccumulator(propReg),
+                    );
+                    this.loadObjByValue(node, obj, propReg);
+                    this.freeTemps(propReg);
+                }
                 break;
+            }
             case "string":
                 this.loadObjByName(node, obj, prop);
                 break;
@@ -442,7 +453,21 @@ export class PandaGen {
     storeObjProperty(node: ts.Node | NodeKind, obj: VReg, prop: VReg | string | number) {
         switch (typeof (prop)) {
             case "number":
-                this.storeObjByIndex(node, obj, prop);
+                if (isInteger(prop)) {
+                    this.storeObjByIndex(node, obj, prop);
+                } else {
+                    let valueReg = this.getTemp();
+                    let propReg = this.getTemp();
+                    this.storeAccumulator(node, valueReg);
+                    this.add(
+                        node,
+                        loadAccumulatorFloat(prop),
+                        storeAccumulator(propReg),
+                        loadAccumulator(valueReg)
+                    );
+                    this.storeObjByValue(node, obj, propReg);
+                    this.freeTemps(valueReg, propReg);
+                }
                 break;
             case "string":
                 this.storeObjByName(node, obj, prop);
@@ -453,67 +478,59 @@ export class PandaGen {
     }
 
     storeOwnProperty(node: ts.Node | NodeKind, obj: VReg, prop: VReg | string | number) {
-        if (typeof (prop) == "string") {
-            this.stOwnByName(node, obj, prop);
-        } else if (typeof (prop) == "number") {
-            this.stOwnByIndex(node, obj, prop);
-        } else {
-            this.stOwnByValue(node, obj, prop);
+        switch (typeof prop) {
+            case "number": {
+                if (isInteger(prop)) {
+                    this.stOwnByIndex(node, obj, prop);
+                } else {
+                    let valueReg = this.getTemp();
+                    let propReg = this.getTemp();
+                    this.storeAccumulator(node, valueReg);
+                    this.add(
+                        node,
+                        loadAccumulatorFloat(prop),
+                        storeAccumulator(propReg),
+                        loadAccumulator(valueReg)
+                    );
+                    this.stOwnByValue(node, obj, propReg);
+                    this.freeTemps(valueReg, propReg);
+                }
+                break;
+            }
+            case "string":
+                this.stOwnByName(node, obj, prop);
+                break;
+            default:
+                this.stOwnByValue(node, obj, prop);
         }
     }
 
     private loadObjByName(node: ts.Node, obj: VReg, string_id: string) {
         this.add(
             node,
-            loadObjByName(obj, string_id));
+            loadObjByName(obj, string_id)
+        );
     }
 
     private storeObjByName(node: ts.Node | NodeKind, obj: VReg, string_id: string) {
-        this.add(node, storeObjByName(obj, string_id));
+        this.add(
+            node,
+            storeObjByName(obj, string_id)
+        );
     }
 
     private loadObjByIndex(node: ts.Node, obj: VReg, index: number) {
-        let indexReg = this.getTemp();
-        if (isInteger(index)) {
-            this.add(
-                node,
-                loadAccumulatorInt(index)
-            );
-        } else {
-            this.add(
-                node,
-                loadAccumulatorFloat(index)
-            );
-        }
         this.add(
             node,
-            storeAccumulator(indexReg),
-            loadObjByIndex(obj, indexReg)
-        );
-        this.freeTemps(indexReg);
+            loadObjByIndex(obj, index)
+        )
     }
 
     private storeObjByIndex(node: ts.Node | NodeKind, obj: VReg, index: number) {
-        let indexReg = this.getTemp();
-        let valueReg = this.getTemp();
-        this.add(node, storeAccumulator(valueReg));
-        if (isInteger(index)) {
-            this.add(
-                node,
-                loadAccumulatorInt(index)
-            );
-        } else {
-            this.add(
-                node,
-                loadAccumulatorFloat(index)
-            );
-        }
         this.add(
             node,
-            storeAccumulator(indexReg),
-            loadAccumulator(valueReg),
-            storeObjByIndex(obj, indexReg));
-        this.freeTemps(indexReg, valueReg);
+            storeObjByIndex(obj, index)
+        )
     }
 
 
@@ -536,45 +553,14 @@ export class PandaGen {
     }
 
     private stOwnByIndex(node: ts.Node | NodeKind, obj: VReg, index: number) {
-        let indexReg = this.getTemp();
-        let valueReg = this.getTemp();
-        this.add(node, storeAccumulator(valueReg));
-        if (isInteger(index)) {
-            this.add(
-                node,
-                loadAccumulatorInt(index)
-            );
-        } else {
-            this.add(
-                node,
-                loadAccumulatorFloat(index)
-            );
-        }
         this.add(
             node,
-            storeAccumulator(indexReg),
-            loadAccumulator(valueReg),
-            storeOwnByIndex(obj, indexReg));
-        this.freeTemps(indexReg, valueReg);
+            storeOwnByIndex(obj, index)
+        )
     }
 
     private stOwnByValue(node: ts.Node | NodeKind, obj: VReg, value: VReg) {
         this.add(node, storeOwnByValue(obj, value));
-    }
-
-    tryLoadGlobalByValue(node: ts.Node, key: VReg) {
-        this.add(
-            node,
-            tryLoadGlobalByValue(key)
-        )
-    }
-
-
-    tryStoreGlobalByValue(node: ts.Node, key: VReg) {
-        this.add(
-            node,
-            tryStoreGlobalByValue(key)
-        )
     }
 
     // eg. print
@@ -628,6 +614,36 @@ export class PandaGen {
         this.add(node, jumpTarget(target));
     }
 
+    isTrue(node: ts.Node) {
+        this.add(
+            node,
+            isTrue()
+        )
+    }
+
+    jumpIfTrue(node: ts.Node, target: Label) {
+        this.isFalse(node);
+        this.add(
+            node,
+            new Jeqz(target)
+        )
+    }
+
+    isFalse(node: ts.Node) {
+        this.add(
+            node,
+            isFalse()
+        )
+    }
+
+    jumpIfFalse(node: ts.Node, target: Label) {
+        this.isTrue(node);
+        this.add(
+            node,
+            new Jeqz(target)
+        )
+    }
+
     debugger(node: ts.Node) {
         this.add(node, creatDebugger());
     }
@@ -648,61 +664,60 @@ export class PandaGen {
         // Please keep order of cases the same as in types.ts
         switch (op) {
             case SyntaxKind.LessThanToken: // line 57
-                this.add(node, new LessDyn(lhs));
+                this.add(node, new EcmaLessdyn(lhs));
                 this.add(node, new Jeqz(ifFalse));
                 break;
             case SyntaxKind.GreaterThanToken: // line 59
-                this.add(node, new GreaterDyn(lhs));
+                this.add(node, new EcmaGreaterdyn(lhs));
                 this.add(node, new Jeqz(ifFalse));
                 break;
             case SyntaxKind.LessThanEqualsToken: // line 60
-                this.add(node, new LessEqDyn(lhs));
+                this.add(node, new EcmaLesseqdyn(lhs));
                 this.add(node, new Jeqz(ifFalse));
                 break;
             case SyntaxKind.GreaterThanEqualsToken: // line 61
-                this.add(node, new GreaterEqDyn(lhs));
+                this.add(node, new EcmaGreatereqdyn(lhs));
                 this.add(node, new Jeqz(ifFalse));
                 break;
             case SyntaxKind.EqualsEqualsToken: // line 62
-                this.add(node, new EqDyn(lhs));
+                this.add(node, new EcmaEqdyn(lhs));
                 this.add(node, new Jeqz(ifFalse));
                 break;
             case SyntaxKind.ExclamationEqualsToken: // line 63
-                this.add(node, new NotEqDyn(lhs));
+                this.add(node, new EcmaNoteqdyn(lhs));
                 this.add(node, new Jeqz(ifFalse));
                 break;
             case SyntaxKind.EqualsEqualsEqualsToken: // line 64
-                this.add(node, new StrictEqDyn(lhs));
+                this.add(node, new EcmaStricteqdyn(lhs));
                 this.add(node, new Jeqz(ifFalse));
                 break;
             case SyntaxKind.ExclamationEqualsEqualsToken: // line 65
-                this.add(node, new StrictNotEqDyn(lhs));
+                this.add(node, new EcmaStrictnoteqdyn(lhs));
                 this.add(node, new Jeqz(ifFalse));
                 break;
             default:
-                throw new Error("unimplemented op");
+                break;
         }
     }
 
     unary(node: ts.Node, op: PrefixUnaryOperator, operand: VReg) {
         switch (op) {
             case SyntaxKind.PlusToken:
-                this.add(node, new Tonumber(operand));
+                this.add(node, new EcmaTonumber(operand));
                 break;
             case SyntaxKind.MinusToken:
-                this.add(node, new NegDyn(operand));
+                this.add(node, new EcmaNegdyn(operand));
                 break;
             case SyntaxKind.PlusPlusToken:
-                this.add(node, new IncDyn(operand));
+                this.add(node, new EcmaIncdyn(operand));
                 break;
             case SyntaxKind.MinusMinusToken:
-                this.add(node, new DecDyn(operand));
+                this.add(node, new EcmaDecdyn(operand));
                 break;
             case SyntaxKind.ExclamationToken:
                 let falseLabel = new Label();
                 let endLabel = new Label();
-                this.toBoolean(node);
-                this.condition(node, SyntaxKind.EqualsEqualsToken, getVregisterCache(this, CacheList.True), falseLabel);
+                this.jumpIfFalse(node, falseLabel);
                 // operand is true
                 this.add(node, loadAccumulator(getVregisterCache(this, CacheList.False)));
                 this.branch(node, endLabel);
@@ -712,7 +727,7 @@ export class PandaGen {
                 this.label(node, endLabel);
                 break;
             case SyntaxKind.TildeToken:
-                this.add(node, new NotDyn(operand));
+                this.add(node, new EcmaNotdyn(operand));
                 break;
             default:
                 throw new Error("Unimplemented");
@@ -733,61 +748,61 @@ export class PandaGen {
                 break;
             case SyntaxKind.PlusToken: // line 67
             case SyntaxKind.PlusEqualsToken: // line 91
-                this.add(node, new Add2Dyn(lhs));
+                this.add(node, new EcmaAdd2dyn(lhs));
                 break;
             case SyntaxKind.MinusToken: // line 68
             case SyntaxKind.MinusEqualsToken: // line 92
-                this.add(node, new Sub2Dyn(lhs));
+                this.add(node, new EcmaSub2dyn(lhs));
                 break;
             case SyntaxKind.AsteriskToken: // line 69
             case SyntaxKind.AsteriskEqualsToken: // line 93
-                this.add(node, new Mul2Dyn(lhs));
+                this.add(node, new EcmaMul2dyn(lhs));
                 break;
             case SyntaxKind.AsteriskAsteriskToken: // line 70
             case SyntaxKind.AsteriskAsteriskEqualsToken: // line 94
-                this.add(node, new ExpDyn(lhs));
+                this.add(node, new EcmaExpdyn(lhs));
                 break;
             case SyntaxKind.SlashToken: // line 71
             case SyntaxKind.SlashEqualsToken: // line 95
-                this.add(node, new Div2Dyn(lhs));
+                this.add(node, new EcmaDiv2dyn(lhs));
                 break;
             case SyntaxKind.PercentToken: // line 72
             case SyntaxKind.PercentEqualsToken: // line 96
-                this.add(node, new Mod2Dyn(lhs));
+                this.add(node, new EcmaMod2dyn(lhs));
                 break;
             case SyntaxKind.LessThanLessThanToken: // line 75
             case SyntaxKind.LessThanLessThanEqualsToken: // line 97
-                this.add(node, new Shl2Dyn(lhs));
+                this.add(node, new EcmaShl2dyn(lhs));
                 break;
             case SyntaxKind.GreaterThanGreaterThanToken: // line 76
             case SyntaxKind.GreaterThanGreaterThanEqualsToken: // line 98
-                this.add(node, new Shr2Dyn(lhs));
+                this.add(node, new EcmaShr2dyn(lhs));
                 break;
             case SyntaxKind.GreaterThanGreaterThanGreaterThanToken: // line 77
             case SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken: // line 99
-                this.add(node, new Ashr2Dyn(lhs));
+                this.add(node, new EcmaAshr2dyn(lhs));
                 break;
             case SyntaxKind.AmpersandToken: // line 78
             case SyntaxKind.AmpersandEqualsToken: // line 100
-                this.add(node, new And2Dyn(lhs));
+                this.add(node, new EcmaAnd2dyn(lhs));
                 break;
             case SyntaxKind.BarToken: // line 79
             case SyntaxKind.BarEqualsToken: // line 101
-                this.add(node, new Or2Dyn(lhs));
+                this.add(node, new EcmaOr2dyn(lhs));
                 break;
             case SyntaxKind.CaretToken: // line 80
             case SyntaxKind.CaretEqualsToken: // line 102
-                this.add(node, new Xor2Dyn(lhs));
+                this.add(node, new EcmaXor2dyn(lhs));
                 break;
             case SyntaxKind.InKeyword: //line 125
                 // The in operator returns true if the specified property is in the specified object or its prototype chain
-                this.add(node, new IsInDyn(lhs));
+                this.add(node, new EcmaIsindyn(lhs));
                 break;
             case SyntaxKind.InstanceOfKeyword: //line 126
                 // The instanceof operator tests to see if the prototype property of
                 // a constructor appears anywhere in the prototype chain of an object.
                 // The return value is a boolean value.
-                this.add(node, new InstanceOfDyn(lhs));
+                this.add(node, new EcmaInstanceofdyn(lhs));
                 break;
             default:
                 throw new Error("Unimplemented");
@@ -837,17 +852,16 @@ export class PandaGen {
     }
 
     defineMethod(node: ts.FunctionLikeDeclaration, name: string, objReg: VReg, env: VReg) {
-        this.add(node,
+        let paramLength = getParamLengthOfFunc(node);
+        this.add(
+            node,
             loadAccumulator(objReg),
-            new DefineMethod(name, env)
+            defineMethod(name, env, paramLength)
         );
     }
 
-    defineFuncDyn(node: ts.FunctionLikeDeclaration | ts.ClassLikeDeclaration | NodeKind, name: string, env: VReg) {
-        this.add(node, new DefinefuncDyn(name, env));
-    }
-
-    defineFunction(node: ts.FunctionLikeDeclaration | ts.ClassLikeDeclaration | NodeKind, realNode: ts.FunctionLikeDeclaration, name: string, env: VReg) {
+    defineFunction(node: ts.FunctionLikeDeclaration | NodeKind, realNode: ts.FunctionLikeDeclaration, name: string, env: VReg) {
+        let paramLength = getParamLengthOfFunc(realNode);
         if (realNode.modifiers) {
             for (let i = 0; i < realNode.modifiers.length; i++) {
                 if (realNode.modifiers[i].kind == ts.SyntaxKind.AsyncKeyword) {
@@ -856,7 +870,7 @@ export class PandaGen {
                     } else { // async
                         this.add(
                             node,
-                            new DefineAsyncFuncDyn(name, env)
+                            defineAsyncFunc(name, env, paramLength)
                         );
                         return;
                     }
@@ -867,7 +881,7 @@ export class PandaGen {
         if (realNode.asteriskToken) {
             this.add(
                 node,
-                new DefineGeneratorfuncDyn(name, env)
+                defineGeneratorFunc(name, env, paramLength)
             );
             return;
         }
@@ -876,83 +890,79 @@ export class PandaGen {
             this.add(
                 node,
                 loadHomeObject(),
-                new DefineNCFuncDyn(name, env)
+                defineNCFunc(name, env, paramLength)
             );
             return;
         }
 
         this.add(
             node,
-            new DefinefuncDyn(name, env)
+            defineFunc(name, env, paramLength)
         );
     }
 
     typeOf(node: ts.Node) {
-        this.add(node, new TypeOfDyn());
+        this.add(node, new EcmaTypeofdyn());
     }
 
     callSpread(node: ts.Node, func: VReg, thisReg: VReg, args: VReg) {
-        this.add(node, new CallSpread(func, thisReg, args));
+        this.add(node, new EcmaCallspreaddyn(func, thisReg, args));
     }
 
     newObjSpread(node: ts.Node, obj: VReg, target: VReg) {
-        this.add(node, new NewobjSpread(obj, target));
+        this.add(node, new EcmaNewobjspreaddyn(obj, target));
     }
 
     getUnmappedArgs(node: ts.Node) {
-        this.add(node, new GetUnmappedArgs());
-    }
-
-    toBoolean(node: ts.Node) {
-        this.add(node, new Toboolean());
+        this.add(node, new EcmaGetunmappedargs());
     }
 
     toNumber(node: ts.Node, arg: VReg) {
-        this.add(node, new Tonumber(arg));
+        this.add(node, new EcmaTonumber(arg));
     }
 
     createGeneratorObj(node: ts.Node, funcObj: VReg) {
-        this.add(node, new CreateGeneratorObjDyn(funcObj));
+        this.add(node, new EcmaCreategeneratorobj(funcObj));
     }
 
-    createIterResultObjectDyn(node: ts.Node, value: VReg, done: VReg) {
-        this.add(node, new CreateIterResultObjectDyn(value, done));
+    EcmaCreateiterresultobj(node: ts.Node, value: VReg, done: VReg) {
+        this.add(node, new EcmaCreateiterresultobj(value, done));
     }
 
     suspendGenerator(node: ts.Node, genObj: VReg, iterRslt: VReg) {
-        this.add(node, new SuspendGeneratorDyn(genObj, iterRslt));
+        this.add(node, new EcmaSuspendgenerator(genObj, iterRslt));
     }
 
     resumeGenerator(node: ts.Node, genObj: VReg) {
-        this.add(node, new ResumeGeneratorDyn(genObj));
+        this.add(node, new EcmaResumegenerator(genObj));
     }
 
     getResumeMode(node: ts.Node, genObj: VReg) {
-        this.add(node, new GetResumeModeDyn(genObj));
+        this.add(node, new EcmaGetresumemode(genObj));
     }
 
     asyncFunctionEnter(node: ts.Node) {
-        this.add(node, new AsyncFunctionEnterDyn());
+        this.add(node, new EcmaAsyncfunctionenter());
     }
 
     asyncFunctionAwaitUncaught(node: ts.Node, asynFuncObj: VReg, value: VReg) {
-        this.add(node, new AsyncFunctionAwaitUncaughtDyn(asynFuncObj, value));
+        this.add(node, new EcmaAsyncfunctionawaituncaught(asynFuncObj, value));
     }
 
     asyncFunctionResolve(node: ts.Node | NodeKind, asyncObj: VReg, value: VReg, canSuspend: VReg) {
-        this.add(node, new AsyncFunctionResolveDyn(asyncObj, value, canSuspend));
+        this.add(node, new EcmaAsyncfunctionresolve(asyncObj, value, canSuspend));
     }
 
     asyncFunctionReject(node: ts.Node | NodeKind, asyncObj: VReg, value: VReg, canSuspend: VReg) {
-        this.add(node, new AsyncFunctionRejectDyn(asyncObj, value, canSuspend));
+        this.add(node, new EcmaAsyncfunctionreject(asyncObj, value, canSuspend));
     }
 
     getTemplateObject(node: ts.Node | NodeKind, value: VReg) {
-        this.add(node, new GetTemplateObject(value));
+        this.add(node, new EcmaGettemplateobject(value));
     }
 
     copyRestArgs(node: ts.Node, index: number) {
-        this.add(node, new CopyRestArgs(new Imm(ResultType.Int, index)));
+        this.add(node, new EcmaCopyrestargs(new Imm(ResultType.Int, index)));
     }
 
     getPropIterator(node: ts.Node) {
@@ -1038,10 +1048,10 @@ export class PandaGen {
         this.add(node, copyModuleIntoCurrentModule(module));
     }
 
-    defineClassWithBuffer(node: ts.Node, name: string, idx: number, base: VReg) {
+    defineClassWithBuffer(node: ts.Node, name: string, idx: number, parameterLength: number, base: VReg) {
         this.add(
             node,
-            defineClassWithBuffer(name, idx, getVregisterCache(this, CacheList.LexEnv), base)
+            defineClassWithBuffer(name, idx, parameterLength, getVregisterCache(this, CacheList.LexEnv), base)
         )
     }
 
@@ -1171,36 +1181,43 @@ export class PandaGen {
         )
     }
 
+    createRegExpWithLiteral(node: ts.Node, pattern: string, flags: number) {
+        this.add(
+            node,
+            createRegExpWithLiteral(pattern, flags)
+        )
+    }
+
     private binaryRelation(node: ts.Node, op: BinaryOperator, lhs: VReg) {
         let falseLabel = new Label();
         let endLabel = new Label();
         switch (op) {
             case SyntaxKind.LessThanToken:
-                this.add(node, new LessDyn(lhs));
+                this.add(node, new EcmaLessdyn(lhs));
                 break;
             case SyntaxKind.GreaterThanToken:
-                this.add(node, new GreaterDyn(lhs));
+                this.add(node, new EcmaGreaterdyn(lhs));
                 break;
             case SyntaxKind.LessThanEqualsToken:
-                this.add(node, new LessEqDyn(lhs));
+                this.add(node, new EcmaLesseqdyn(lhs));
                 break;
             case SyntaxKind.GreaterThanEqualsToken:
-                this.add(node, new GreaterEqDyn(lhs));
+                this.add(node, new EcmaGreatereqdyn(lhs));
                 break;
             case SyntaxKind.EqualsEqualsToken:
-                this.add(node, new EqDyn(lhs));
+                this.add(node, new EcmaEqdyn(lhs));
                 break;
             case SyntaxKind.ExclamationEqualsToken:
-                this.add(node, new NotEqDyn(lhs));
+                this.add(node, new EcmaNoteqdyn(lhs));
                 break;
             case SyntaxKind.EqualsEqualsEqualsToken:
-                this.add(node, new StrictEqDyn(lhs));
+                this.add(node, new EcmaStricteqdyn(lhs));
                 break;
             case SyntaxKind.ExclamationEqualsEqualsToken:
-                this.add(node, new StrictNotEqDyn(lhs));
+                this.add(node, new EcmaStrictnoteqdyn(lhs));
                 break;
             default:
-                throw new Error("unimplemented op");
+                break;
         }
         this.add(node, new Jeqz(falseLabel));
         this.add(node, loadAccumulator(getVregisterCache(this, CacheList.True)));

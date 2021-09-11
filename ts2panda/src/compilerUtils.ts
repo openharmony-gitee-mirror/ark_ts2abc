@@ -189,8 +189,7 @@ function compileArrayDestructuring(arr: ts.ArrayBindingOrAssignmentPattern, pand
     pandaGen.freeTemps(iter, nextMethod, iterDone, iterValue, nextResult, exception);
 }
 
-function emitRestElement(restElement: ts.BindingName | ts.Expression, iterator: Iterator, iterResult: VReg,
-                         pandaGen: PandaGen, compiler: Compiler, isDeclaration: boolean) {
+function emitRestElement(restElement: ts.BindingName | ts.Expression, iterator: Iterator, iterResult: VReg, pandaGen: PandaGen, compiler: Compiler, isDeclaration: boolean) {
     let arrayObj = pandaGen.getTemp();
     let index = pandaGen.getTemp();
 
@@ -339,6 +338,7 @@ function compileObjectDestructuring(obj: ts.ObjectBindingOrAssignmentPattern, pa
         if (ts.isComputedPropertyName(key)) {
             compiler.compileExpression(key.expression);
         } else {
+            // compiler.compileExpression(key);
             if (ts.isIdentifier(key)) {
                 let keyName = jshelpers.getTextOfIdentifierOrLiteral(key);
                 pandaGen.loadAccumulatorString(key, keyName);
@@ -384,8 +384,7 @@ function compileObjectDestructuring(obj: ts.ObjectBindingOrAssignmentPattern, pa
     pandaGen.freeTemps(value, ...properties);
 }
 
-function emitRestProperty(restProperty: ts.BindingElement | ts.SpreadAssignment, excludedProp: Array<VReg>,
-                          obj: VReg, pandaGen: PandaGen, compiler: Compiler) {
+function emitRestProperty(restProperty: ts.BindingElement | ts.SpreadAssignment, excludedProp: Array<VReg>, obj: VReg, pandaGen: PandaGen, compiler: Compiler) {
     let isDeclaration = ts.isBindingElement(restProperty) ? true : false;
     let target = isDeclaration ? (<ts.BindingElement>restProperty).name : (<ts.SpreadAssignment>restProperty).expression;
     let lRef = LReference.generateLReference(compiler, target, true);

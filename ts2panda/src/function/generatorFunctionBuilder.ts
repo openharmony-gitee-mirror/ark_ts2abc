@@ -63,7 +63,7 @@ export class GeneratorFunctionBuilder {
         let pandaGen = this.pandaGen;
 
         let iterRslt = pandaGen.getTemp();
-        pandaGen.createIterResultObjectDyn(node, value, getVregisterCache(pandaGen, CacheList.False));
+        pandaGen.EcmaCreateiterresultobj(node, value, getVregisterCache(pandaGen, CacheList.False));
         pandaGen.storeAccumulator(node, iterRslt);
         pandaGen.suspendGenerator(node, this.genObj, iterRslt);
         pandaGen.freeTemps(iterRslt);
@@ -174,8 +174,7 @@ export class GeneratorFunctionBuilder {
         pandaGen.throwIfNotObject(expr, this.retVal);
 
         pandaGen.loadObjProperty(expr, this.retVal, "done");
-        pandaGen.toBoolean(expr);
-        pandaGen.condition(expr, ts.SyntaxKind.ExclamationEqualsToken, getVregisterCache(pandaGen, CacheList.True), exitLabel_value);
+        pandaGen.jumpIfTrue(expr, exitLabel_value);
 
         pandaGen.suspendGenerator(expr, this.genObj, this.retVal);
         pandaGen.resumeGenerator(expr, this.genObj);
