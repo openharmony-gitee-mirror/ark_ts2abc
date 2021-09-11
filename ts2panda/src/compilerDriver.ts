@@ -313,14 +313,15 @@ export class CompilerDriver {
      * Runtime uses this name to bind code and a Function object
      */
     getFuncInternalName(node: ts.SourceFile | ts.FunctionLikeDeclaration, recorder: Recorder): string {
+        let name: string;
         if (ts.isSourceFile(node)) {
-            return "func_main_0";
+            name = "func_main_0";
         } else if (ts.isConstructorDeclaration(node)) {
             let classNode = node.parent;
-            return this.getInternalNameForCtor(classNode);
+            name = this.getInternalNameForCtor(classNode);
         } else {
             let funcNode = <ts.FunctionLikeDeclaration>node;
-            let name: string = (<FunctionScope>recorder.getScopeOfNode(funcNode)).getFuncName();
+            name = (<FunctionScope>recorder.getScopeOfNode(funcNode)).getFuncName();
             if (name == '') {
                 return `#${this.getFuncId(funcNode)}#`;
             }
@@ -339,13 +340,20 @@ export class CompilerDriver {
                 throw new Error("the function name is missing from the name map");
             }
 
-            return name;
+            if (name.lastIndexOf(".") != -1) {
+                name = `#${this.getFuncId(funcNode)}#`
+            }
         }
+        return name;
     }
 
     getInternalNameForCtor(node: ts.ClassLikeDeclaration) {
         let name = getClassNameForConstructor(node);
-        return `#${this.getFuncId(node)}#${name}`;
+        name = `#${this.getFuncId(node)}#${name}`
+        if (name.lastIndexOf(".") != -1) {
+            name = `#${this.getFuncId(node)}#`
+        }
+        return name;
     }
 
     writeBinaryFile(pandaGen: PandaGen) {
