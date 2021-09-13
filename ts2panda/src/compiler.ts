@@ -1358,10 +1358,28 @@ export class Compiler {
         isDeclaration: boolean) {
         if (variable.v instanceof LocalVariable) {
             if (isDeclaration) {
-                if (variable.v.isLetOrConst()) {
+                if (variable.v.isLet()) {
                     variable.v.initialize();
+                    if (variable.scope instanceof GlobalScope || variable.scope instanceof ModuleScope) {
+                        this.pandaGen.stLetToGlobalRecord(node, variable.v.getName());
+                        return;
+                    }
+                } else if (variable.v.isConst()) {
+                    variable.v.initialize();
+                    if (variable.scope instanceof GlobalScope || variable.scope instanceof ModuleScope) {
+                        this.pandaGen.stConstToGlobalRecord(node, variable.v.getName());
+                        return;
+                    }
                 }
             }
+
+            if (variable.v.isLetOrConst()) {
+                if (variable.scope instanceof GlobalScope || variable.scope instanceof ModuleScope) {
+                    this.pandaGen.tryStoreGlobalByName(node, variable.v.getName());
+                    return;
+                }
+            }
+
             if (variable.scope && variable.level >= 0) { // inner most function will load outer env instead of new a lex env
                 let scope = this.scope;
                 let needSetLexVar: boolean = false;
@@ -1394,6 +1412,13 @@ export class Compiler {
         if (variable.v instanceof ModuleVariable) {
             this.pandaGen.loadModuleVariable(node, variable.v.getModule(), variable.v.getExoticName());
         } else if (variable.v instanceof LocalVariable) {
+            if (variable.v.isLetOrConst() || variable.v.isClass()) {
+                if (variable.scope instanceof GlobalScope || variable.scope instanceof ModuleScope) {
+                    this.pandaGen.tryLoadGlobalByName(node, variable.v.getName());
+                    return;
+                }
+            }
+
             if (variable.scope && variable.level >= 0) { // inner most function will load outer env instead of new a lex env
                 let scope = this.scope;
                 let needSetLexVar: boolean = false;
