@@ -323,8 +323,7 @@ function checkBreakOrContinueStatement(node: ts.BreakOrContinueStatement) {
         } else {
             diagnosticCode = DiagnosticCode.A_continue_statement_can_only_jump_to_a_label_of_an_enclosing_iteration_statement;
         }
-    }
-    else {
+    } else {
         if (node.kind == ts.SyntaxKind.BreakStatement) {
             diagnosticCode = DiagnosticCode.A_break_statement_can_only_be_used_within_an_enclosing_iteration_or_switch_statement;
         } else {
@@ -764,7 +763,6 @@ const enum OuterExpressionKinds {
     TypeAssertions = 1 << 1,
     NonNullAssertions = 1 << 2,
     PartiallyEmittedExpressions = 1 << 3,
-
     Assertions = TypeAssertions | NonNullAssertions,
     All = Parentheses | Assertions | PartiallyEmittedExpressions
 }

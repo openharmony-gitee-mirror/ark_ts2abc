@@ -19,7 +19,7 @@
  * and asks Pandagen to generate bytecode.
  *
  * This file shold not contain import from irnodes.ts.
- * The interface of PandaGen shold be enoght.
+ * The interface of PandaGen shold be enough.
  */
 
 import * as ts from "typescript";
@@ -481,7 +481,7 @@ export class Compiler {
         if (stmt.elseStatement) {
             let flowNode = jshelpers.getFlowNode(stmt);
             if (flowNode !== undefined) {
-                if (!(flowNode.flags & ts.FlowFlags.Unreachable)) { //if not unreachable
+                if (!(flowNode.flags & ts.FlowFlags.Unreachable)) { // if not unreachable
                     this.pandaGen.branch(DebugInfo.getLastNode(), ifEndLabel);
                 }
             }
@@ -521,7 +521,7 @@ export class Compiler {
         let labelName: string = jshelpers.getTextOfIdentifierOrLiteral(stmt.label);
         let blockEndLabel = undefined;
 
-        // because there is no labled in the block statement, we need add the end lable.
+        // because there is no label in the block statement, we need to add the end label.
         if (stmt.statement.kind == ts.SyntaxKind.Block) {
             blockEndLabel = new Label();
 
@@ -536,7 +536,7 @@ export class Compiler {
             this.pandaGen.label(stmt, blockEndLabel);
         }
 
-        // because the scope of the label just in labeld statment, we need delete it.
+        // because the scope of the label is just in labeled statment, we need to delete it.
         LabelTarget.deleteName2LabelTarget(labelName);
         this.popScope();
     }
@@ -923,7 +923,6 @@ export class Compiler {
         let objReg: VReg;
         let propReg: VReg;
         let unaryExpr = expr.expression;
-
         switch (unaryExpr.kind) {
             case ts.SyntaxKind.Identifier: {
                 // Check if this is a known variable.
@@ -958,7 +957,6 @@ export class Compiler {
                 }
 
                 let { prop: prop } = getObjAndProp(<ts.PropertyAccessExpression | ts.ElementAccessExpression>unaryExpr, objReg, propReg, this);
-
                 switch (typeof prop) {
                     case "string":
                         pandaGen.loadAccumulatorString(expr, prop);

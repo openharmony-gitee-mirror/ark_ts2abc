@@ -36,17 +36,16 @@ export function isInteger(value: number): Boolean {
 }
 
 export function compileNumericLiteral(pandaGen: PandaGen, lit: ts.NumericLiteral) {
-
     let text = jshelpers.getTextOfIdentifierOrLiteral(lit);
     let value = Number.parseFloat(text);
-    // check value whether is a NaN
+    // check whether value is a NaN
     if (Number.isNaN(value)) {
         pandaGen.loadAccumulator(lit, getVregisterCache(pandaGen, CacheList.NaN));
     } else if (!Number.isFinite(value)) {
-        // check value whether is a Infinity
+        // check whether value is a Infinity
         pandaGen.loadAccumulator(lit, getVregisterCache(pandaGen, CacheList.Infinity));
     } else if (isInteger(value)) {
-        // check value whether is a SafeInteger
+        // check whether value is a SafeInteger
         pandaGen.loadAccumulatorInt(lit, value);
     } else {
         pandaGen.loadAccumulatorFloat(lit, value);

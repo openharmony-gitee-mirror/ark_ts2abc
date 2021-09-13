@@ -149,7 +149,9 @@ export class CompilerDriver {
 
             this.getASTStatistics(node, statics);
             statics.forEach((element, idx) => {
-                if (element > 0) LOGD(this.kind2String(idx) + " = " + element);
+                if (element > 0) {
+                    LOGD(this.kind2String(idx) + " = " + element);
+                }
             });
         }
 
