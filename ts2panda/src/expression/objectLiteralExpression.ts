@@ -33,7 +33,7 @@ export function compileObjectLiteralExpression(compiler: Compiler, expr: ts.Obje
     let objReg = pandaGen.getTemp();
     let hasMethod: boolean = false;
 
-    // emptyObjectLiteral
+    // empty ObjectLiteral expression
     if (properties.length == 0) {
         pandaGen.createEmptyObject(expr);
         pandaGen.storeAccumulator(expr, objReg);

@@ -439,14 +439,14 @@ export class FunctionScope extends VariableScope {
         LOGD(this.debugTag, "functionscope.add (" + name + "), kind:" + declKind);
 
         if (declKind == VarDeclarationKind.NONE) {
-            // the variable declared without anything should be gloabal
+            // the variable declared without anything should be global
             // See EcmaStandard: 13.3.2 Variable Statement
             let globalScope = this.getRootScope();
             if (globalScope instanceof GlobalScope || globalScope instanceof ModuleScope) {
                 v = globalScope.add(name, declKind);
             } else {
                 v = undefined;
-                throw new Error("Error: global variable must define in globalscope");
+                throw new Error("Error: global variable must be defined in global scope");
             }
         } else if (declKind == VarDeclarationKind.VAR || declKind == VarDeclarationKind.FUNCTION) {
             v = new LocalVariable(declKind, name);
@@ -483,13 +483,15 @@ export class LocalScope extends Scope {
             if (root instanceof GlobalScope || root instanceof ModuleScope) {
                 return root.add(name, declKind, status);
             } else {
-                LOGE(undefined, "Error: this scope'root is not globalscope, it is wrong");
+                LOGE(undefined, "Error: the root of this scope is not global scope, it is wrong");
                 return undefined;
             }
         } else if (declKind == VarDeclarationKind.VAR) {
-            // the variable declared without anything should be accessible
-            // in all parent scopes so delegate creation to the parent
-            // See EcmaStandard: 13.3.2 Variable Statement
+            /**
+             * the variable declared without anything should be accessible
+             * in all parent scopes so delegate creation to the parent
+             * See EcmaStandard: 13.3.2 Variable Statement
+             */
             let functionScope = this.getNearestVariableScope();
             v = functionScope!.add(name, declKind);
         } else {

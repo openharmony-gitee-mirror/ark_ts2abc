@@ -83,7 +83,6 @@ def gen_bin_info(input_arguments):
 
 
 def gen_java_method(input_arguments):
-
     file_name = input_arguments.plugin_name
     file_path = input_arguments.plugin_path
     out_file = input_arguments.generated_file

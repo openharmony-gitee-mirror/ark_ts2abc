@@ -33,13 +33,14 @@ import {
 } from "./scope";
 import { LocalVariable } from "./variable";
 
-export function hoisting(rootNode: ts.SourceFile | ts.FunctionLikeDeclaration, pandaGen: PandaGen, recorder: Recorder, compiler: Compiler) {
+export function hoisting(rootNode: ts.SourceFile | ts.FunctionLikeDeclaration, pandaGen: PandaGen,
+                         recorder: Recorder, compiler: Compiler) {
     let variableScope = <VariableScope>recorder.getScopeOfNode(rootNode);
     let hoistDecls = recorder.getHoistDeclsOfScope(variableScope);
 
     hoistDecls ?.forEach((decl) => {
         if (decl instanceof VarDecl) {
-            hoistVar(decl, variableScope, pandaGen, compiler);
+            hoistVar(decl, variableScope, pandaGen);
         } else if (decl instanceof FuncDecl) {
             let compilerDriver = compiler.getCompilerDriver();
             hoistFunction(decl, variableScope, pandaGen, compiler, compilerDriver);
@@ -49,7 +50,7 @@ export function hoisting(rootNode: ts.SourceFile | ts.FunctionLikeDeclaration, p
     });
 }
 
-export function hoistVar(decl: VarDecl, scope: Scope, pandaGen: PandaGen, compiler: Compiler) {
+export function hoistVar(decl: VarDecl, scope: Scope, pandaGen: PandaGen) {
     let name = decl.name;
 
     if (scope instanceof GlobalScope) {
@@ -91,7 +92,7 @@ export function hoistFunction(decl: FuncDecl, scope: Scope, pandaGen: PandaGen, 
     }
 }
 
-// this function is called when hoisting function inside block
+// this function is called when hoisting function inside blocks
 export function hoistFunctionInBlock(scope: Scope, pandaGen: PandaGen, strictMode: boolean, compiler: Compiler) {
     let decls = scope.getDecls();
     let funcToHoist = new Array<FuncDecl>();
