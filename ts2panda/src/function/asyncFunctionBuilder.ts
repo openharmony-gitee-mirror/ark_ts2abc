@@ -83,7 +83,7 @@ export class AsyncFunctionBuilder {
 
         let notThrowLabel = new Label();
 
-        // Jump to normal code
+        // jump to normal code
         pandaGen.condition(node, ts.SyntaxKind.EqualsEqualsToken, modeType, notThrowLabel);
         pandaGen.loadAccumulator(node, this.retVal);
         pandaGen.throw(node);

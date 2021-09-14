@@ -115,7 +115,6 @@ export class VariableDebugInfo {
 
     constructor(name: string, signature: string, signatureType: string,
         reg: number, start: number = 0, length: number = 0) {
-
         this.name = name;
         this.signature = signature;
         this.signatureType = signatureType;

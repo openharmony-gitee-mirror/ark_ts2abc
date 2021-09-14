@@ -1,5 +1,5 @@
-# coding: utf-8
 #!/usr/bin/python3
+# coding: utf-8
 
 """
 Copyright (c) 2021 Huawei Device Co., Ltd.
@@ -72,8 +72,7 @@ def parse_args():
     parser.add_argument('--ark-frontend',
                         nargs='?', choices=ARK_FRONTEND_LIST, type=str,
                         help="Choose one of them")
-    args = parser.parse_args()
-    return args
+    return parser.parse_args()
 
 
 def run_check(runnable, env=None):
