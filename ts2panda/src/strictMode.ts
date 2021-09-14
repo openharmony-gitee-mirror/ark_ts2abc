@@ -16,7 +16,7 @@
 import * as ts from "typescript";
 import jshelpers from "./jshelpers";
 
-let globalStrict = false;
+let globalStrict = true;
 
 export function checkStrictModeStatementList(node: ts.Node): boolean {
     let statements;
