@@ -346,8 +346,8 @@ export class TryBuilderWithForOf extends TryBuilderBase {
     private compileIteratorNext(stmt: ts.ForOfStatement, pandagen: PandaGen, iterator: IteratorRecord, resultObj: VReg) {
         pandagen.call(stmt, [iterator.getNextMethod(), iterator.getObject()], true);
         pandagen.storeAccumulator(stmt, resultObj);
-        // Support Async Await further
 
+        // Support Async Await further
         pandagen.throwIfNotObject(stmt, resultObj);
     }
 }

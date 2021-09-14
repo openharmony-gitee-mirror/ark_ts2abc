@@ -33,8 +33,7 @@ TERM_FUCHSIA = '\033[1;35m'
 
 
 def current_time():
-    dt_ms = datetime.datetime.now().strftime('%m-%d %H:%M:%S.%f')
-    return dt_ms
+    return datetime.datetime.now().strftime('%m-%d %H:%M:%S.%f')
 
 
 class Logging():
@@ -82,8 +81,7 @@ class CommandCwd():
         cmd = " ".join(self.cmds)
         LOGGING.debug("command: " + cmd + " | " + "dir: " + self.cwd)
         proc = subprocess.Popen(self.cmds, cwd=self.cwd)
-        ret = proc.wait()
-        return ret
+        return proc.wait()
 
 
 def run_cmd_cwd(commands, cwd=os.getcwd()):

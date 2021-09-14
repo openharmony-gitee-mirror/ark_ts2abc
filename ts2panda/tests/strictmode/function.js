@@ -16,12 +16,12 @@
 function add(a,b) {
     "use strict";
     var x = 12;
-    return a+b+x;
+    return a + b + x;
 }
 
 function sub(a,b) {
     var y = 12;
-    return a+b-y;
+    return a + b - y;
 }
 
 var z = 13;

@@ -25,7 +25,6 @@ import platform
 
 
 def parse_args():
-
     parser = argparse.ArgumentParser()
 
     parser.add_argument('--src-dir',
@@ -39,14 +38,14 @@ def parse_args():
     parser.add_argument("--node-modules",
                         help='path to node-modules exetuable')
 
-    arguments = parser.parse_args()
-    return arguments
+    return parser.parse_args()
 
 
 def set_env(node_dir):
-    jsoner_format = ":"
     if platform.system() == "Windows":
         jsoner_format = ";"
+    else:
+        jsoner_format = ":"
     os.environ["PATH"] = f'{node_dir}{jsoner_format}{os.environ["PATH"]}'
 
 

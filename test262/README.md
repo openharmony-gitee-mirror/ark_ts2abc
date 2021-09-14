@@ -24,7 +24,7 @@ usage: run_test262.py [-h] [--dir DIR] [--file FILE] [--mode [{1,2,3}]]
                       [--ark-frontend [{ts2panda,es2panda}]]
 
 optional arguments:
-  -h, --help            show this help message and exit
+  -h, --help            Show this help message and exit
   --dir DIR             Directory to test
   --file FILE           File to test
   --mode [{1,2,3}]      selection information as: 1: only default 2:
@@ -45,19 +45,18 @@ optional arguments:
   --ark-tool ARK_TOOL   ark's binary tool
   --ark-frontend-tool ARK_FRONTEND_TOOL
                         ark frontend conversion tool
-  --libs-dir LIBS_DIR   The path collection of dependent so has been divided
-                        by':'
+  --libs-dir LIBS_DIR   The path collection of dependent so, divided by':'
   --ark-frontend [{ts2panda,es2panda}]
                         Choose one of them
 ```
 
-### 2.2 run all the test cases
+### 2.2 Run all the test cases
 
 ```
 python3 test262/run_test262.py
 ```
 
-### 2.3 run `es51` related test cases
+### 2.3 Run `es51` related test cases
 
 ```python
 python3 test262/run_test262.py --es51
@@ -65,34 +64,34 @@ python3 test262/run_test262.py --es51
 
 After the execution finished, a directory named `test_es51` is created under directory `test262/data` , which is used to store all `es51` cases.
 
-### 2.4 run `es2015` related test cases
+### 2.4 Run `es2015` related test cases
 #### 2.4.1 only include use cases for ES2015
 ```python
 python3 test262/run_test262.py --es2015 only
 ```
-#### 2.4.2  contains all use cases for ES5 and ES2015
+#### 2.4.2  Contains all use cases for ES5 and ES2015
 ```python
 python3 test262/run_test262.py --es2015 all
 ```
 
-### 2.5 run single test case
+### 2.5 Run single test case
 
 ```python
 python3 test262/run_test262.py --file test262/data/test_es5/language/statements/break/12.8-1.js
 ```
 
-### 2.6 run all the test cases under specified directory
+### 2.6 Run all the test cases under specified directory
 
 ```python
 python3 test262/run_test262.py --dir test262/data/test_es5/language/statements
 ```
 
-### 2.7 run single test case with other engines. Take d8 as an example
+### 2.7 Run single test case with other engines. Take d8 as an example
 
 ```python
  python3 test262/run_test262.py --engine="/home/share/v8-code/v8/out.gn/x64.release/d8" --file test262/data/test_es5/language/statements/break/12.8-1.js
 ```
-### 2.8 run single test case with `babel` conversion
+### 2.8 Run single test case with `babel` conversion
 ```
 python3 test262/run_test262.py  --babel --file test262/data/test_es5/language/statements/break/12.8-1.js
 ```
@@ -155,7 +154,7 @@ Ran 1 tests
 used time is: 0:00:13.303865
 ```
 
-* `default` indicates `non-strict` mode, `strict mode` indicates the strict mode.
+* `default` indicates `non-strict` mode; `strict mode` indicates the strict mode.
 
 * After the execution finished, the following files are generated under directory `out/test262/` (you can specified it in `test262/config.py`):
 
@@ -170,7 +169,7 @@ used time is: 0:00:13.303865
 
 `.abc` indicates the generated binary `abc` file.
 
-`.err` indicates error occurs during the test.
+`.err` indicates that an error occurred during the test.
 
 `.fail/.pass` is the file saved after `js` file has been preprocessed.
 

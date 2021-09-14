@@ -91,15 +91,15 @@ describe("RegAllocator", function() {
     });
 
     it("make spill for SrcDst register", function() {
-        /* the only possible instruction whose operand register type could be SrcDstVReg is INCI, 
+        /* the only possible instruction whose operand register type could be SrcDstVReg is INCI,
          * but we do not use it at all by now
          */
         expect(true).to.be.true;
     });
 
     it("make spill for CalliDynRange", function () {
-        /* since the bitwitdh for CalliDynRange source register is 16 now, we do not need to make spill at all.
-           but later 16 might be changed to 8, then spill operation will be needed in some cases. this testcase is desgined
+        /* since the bitwidth for CalliDynRange source register is 16 now, we do not need to make spill at all.
+           but later 16 might be changed to 8, then spill operation will be needed in some cases. this testcase is designed
            for 8bits constraints.
         */
         let string = "";

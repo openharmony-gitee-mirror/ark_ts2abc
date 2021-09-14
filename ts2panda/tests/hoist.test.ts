@@ -89,7 +89,7 @@ describe("HoistTest", function() {
         expect(checkInstructions(insns, expected)).to.be.true;
     });
 
-    // case 4: In case that two function declared directly in global scope with a same name, hoist the later one.
+    // case 4: In case that two function declared directly in global scope with the same name, hoist the later one.
     it('case 4', function() {
         let snippetCompiler = new SnippetCompiler();
         snippetCompiler.compile(`function a() {}; function a() {}`);
