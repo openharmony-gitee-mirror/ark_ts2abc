@@ -19,6 +19,7 @@ Description: Compile ark front-end code with tsc
 """
 
 import os
+import sys
 import subprocess
 import argparse
 import platform
@@ -73,10 +74,8 @@ def node_modules(options):
 
 def npm_run_build(options):
     plat_form = options.platform
-    node_modules_dir = os.path.join(options.dist_dir, 'node_modules')
-    tsc = os.path.join(node_modules_dir, "typescript/bin/tsc")
-
-    os.environ["NODE_PATH"] = node_modules_dir
+    os.chdir(options.dist_dir)
+    tsc = "node_modules/typescript/bin/tsc"
 
     if plat_form == "linux":
         cmd = [tsc, '-b', 'src']
@@ -89,8 +88,13 @@ def npm_run_build(options):
         run_command(cmd, options.dist_dir)
 
 
-if __name__ == "__main__":
+def main():
     ARGS = parse_args()
     set_env(ARGS.node)
-    node_modules(ARGS)
+    if not os.path.exists(os.path.join(ARGS.dist_dir, "node_modules")):
+        node_modules(ARGS)
     npm_run_build(ARGS)
+
+
+if __name__ == "__main__":
+    sys.exit(main())

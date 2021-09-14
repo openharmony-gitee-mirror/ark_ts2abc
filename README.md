@@ -1,28 +1,31 @@
 # ts2abc <a name="EN-US_TOPIC_0000001137330686"></a>
 
--   [Introduction](#section11660541593)
--   [Directory Structure](#section161941989596)
--   [Note](#section0446154755015)
-    -   [Usage Guidelines](#section33105542504)
-
--   [Repositories Involved](#section1371113476307)
+- [ts2abc <a name="EN-US_TOPIC_0000001137330686"></a>](#ts2abc-)
+  - [Introduction<a name="section11660541593"></a>](#introduction)
+  - [Directory Structure<a name="section161941989596"></a>](#directory-structure)
+  - [Note<a name="section0446154755015"></a>](#note)
+    - [Usage Guidelines<a name="section33105542504"></a>](#usage-guidelines)
+  - [Repositories Involved<a name="section1371113476307"></a>](#repositories-involved)
 
 ## Introduction<a name="section11660541593"></a>
 
-As a module of the ARK platform, ts2abc is a front-end tool for JavaScript \(JS\) in the ARK compiler. It converts JS files into ARK bytecode files.
+ts2abc is a front-end tool in the ARK Runtime Subsystem. It converts JavaScript(JS) files into ARK bytecode files.
+
+For more infomation, see: [ARK Runtime Subsystem](https://gitee.com/openharmony/docs/blob/master/en/readme/ARK-Runtime-Subsystem.md).
 
 ## Directory Structure<a name="section161941989596"></a>
 
 ```
 /ark/ts2abc/
+├── test262            # scripts for configuration and running Test262
 ├── ts2panda
-    ├── doc            # Documents
     ├── scripts        # Dependency scripts
     ├── src            # Source code directory
     ├── templates      # Ruby templates
     ├── tests          # Unit test cases
     ├── tools          # Tools provided by ts2abc
     └── ts2abc         # ts2abc source code
+
 ```
 
 ## Note<a name="section0446154755015"></a>
@@ -181,13 +184,12 @@ You can run  **node --expose-gc  _your\_path_\_to/index.js \[options\]  _your\_f
 </tbody>
 </table>
 
+For more infomation, please see: [ARK-Runtime-Usage-Guide](https://gitee.com/openharmony/ark_js_runtime/blob/master/docs/ARK-Runtime-Usage-Guide.md).
+
 ## Repositories Involved<a name="section1371113476307"></a>
 
-[ARK Runtime Subsystem](https://gitee.com/openharmony/ark_js_runtime/blob/master/docs/ARK-Runtime-Subsystem.md)
+[ark\_runtime\_core](https://gitee.com/openharmony/ark_runtime_core)
 
-[ark/runtime\_core](https://gitee.com/openharmony/ark_runtime_core/blob/master/README.md)
+[ark\_js\_runtime](https://gitee.com/openharmony/ark_js_runtime)
 
-[ark/js\_runtime](https://gitee.com/openharmony/ark_js_runtime/blob/master/README.md)
-
-**[ark/ts2abc](README.md)**
-
+**[ark\_ts2abc](https://gitee.com/openharmony/ark_ts2abc)**

@@ -1,20 +1,23 @@
 # ts2abc组件<a name="ZH-CN_TOPIC_0000001137330686"></a>
 
--   [简介](#section11660541593)
--   [目录](#section161941989596)
--   [说明](#section0446154755015)
-    -   [使用说明](#section33105542504)
-
--   [相关仓](#section1371113476307)
+- [ts2abc组件<a name="ZH-CN_TOPIC_0000001137330686"></a>](#ts2abc组件)
+  - [简介<a name="section11660541593"></a>](#简介)
+  - [目录<a name="section161941989596"></a>](#目录)
+  - [说明<a name="section0446154755015"></a>](#说明)
+    - [使用说明<a name="section33105542504"></a>](#使用说明)
+  - [相关仓<a name="section1371113476307"></a>](#相关仓)
 
 ## 简介<a name="section11660541593"></a>
 
-ts2abc组件是方舟平台的一个组件，其作为方舟编译器中JavaScript语言的前端工具，支持将JavaScript文件转换为方舟字节码文件。
+ts2abc组件是方舟运行时子系统的前端工具，支持将JavaScript文件转换为方舟字节码文件。
+
+更多信息请参考：[方舟运行时子系统](https://gitee.com/openharmony/docs/blob/master/zh-cn/readme/ARK-Runtime-Subsystem-zh.md)
 
 ## 目录<a name="section161941989596"></a>
 
 ```
 /ark/ts2abc/
+├── test262            # Test262测试配置和运行脚本
 ├── ts2panda
     ├── doc            # 文档
     ├── scripts        # 依赖的脚本
@@ -181,13 +184,12 @@ ts2abc组件将JavaScript文件转换为方舟字节码文件，命令行格式�
 </tbody>
 </table>
 
+更多使用说明请参考：[方舟运行时使用指南](https://gitee.com/openharmony/ark_js_runtime/blob/master/docs/ARK-Runtime-Usage-Guide-zh.md)
+
 ## 相关仓<a name="section1371113476307"></a>
 
-[方舟运行时子系统](https://gitee.com/openharmony/ark_js_runtime/blob/master/docs/ARK-Runtime-Subsystem-zh.md)
+[ark\_runtime\_core](https://gitee.com/openharmony/ark_runtime_core)
 
-[ark/runtime\_core](https://gitee.com/openharmony/ark_runtime_core/blob/master/README_zh.md)
+[ark\_js\_runtime](https://gitee.com/openharmony/ark_js_runtime)
 
-[ark/js\_runtime](https://gitee.com/openharmony/ark_js_runtime/blob/master/README_zh.md)
-
-**[ark/ts2abc](README_zh.md)**
-
+**[ark\_ts2abc](https://gitee.com/openharmony/ark_ts2abc)**
