@@ -71,6 +71,8 @@ import {
     EcmaStownbyindex,
     EcmaStownbyname,
     EcmaStownbyvalue,
+    EcmaStownbynamewithnameset,
+    EcmaStownbyvaluewithnameset,
     EcmaStsuperbyname,
     EcmaStsuperbyvalue,
     EcmaSupercall,
@@ -218,16 +220,16 @@ export function storeObjByValue(obj: VReg, prop: VReg): IRNode {
     return new EcmaStobjbyvalue(obj, prop);
 }
 
-export function storeOwnByName(obj: VReg, key: string): IRNode {
-    return new EcmaStownbyname(key, obj);
+export function storeOwnByName(obj: VReg, key: string, nameSetting: boolean): IRNode {
+    return nameSetting ? new EcmaStownbynamewithnameset(key, obj) : new EcmaStownbyname(key, obj);
 }
 
 export function storeOwnByIndex(obj: VReg, index: number) {
     return new EcmaStownbyindex(obj, new Imm(ResultType.Int, index));
 }
 
-export function storeOwnByValue(obj: VReg, value: VReg) {
-    return new EcmaStownbyvalue(obj, value);
+export function storeOwnByValue(obj: VReg, value: VReg, nameSetting: boolean) {
+    return nameSetting ? new EcmaStownbyvaluewithnameset(obj, value) : new EcmaStownbyvalue(obj, value);
 }
 
 export function throwIfSuperNotCorrectCall(num: number) {

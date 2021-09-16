@@ -19,6 +19,7 @@ import * as jshelpers from "../jshelpers";
 import { getParamLengthOfFunc } from "../base/util";
 import { CacheList, getVregisterCache } from "../base/vregisterCache";
 import { isInteger } from "./numericLiteral";
+import { findInnerExprOfParenthesis } from "./parenthesizedExpression";
 import { PandaGen } from "../pandagen";
 import { VReg } from "../irnodes";
 import { PropertyKind, Property, generatePropertyFromExpr } from "../base/properties";
@@ -205,12 +206,13 @@ function compileComputedProperty(compiler: Compiler, prop: Property, objReg: VRe
     switch (prop.getValue().kind) {
         case ts.SyntaxKind.PropertyAssignment: {
             compiler.compileExpression((<ts.PropertyAssignment>prop.getValue()).initializer);
-            pandaGen.storeOwnProperty(prop.getValue(), objReg, keyReg);
+            let nameSetting: boolean = needSettingName((<ts.PropertyAssignment>prop.getValue()).initializer);
+            pandaGen.storeOwnProperty(prop.getValue(), objReg, keyReg, nameSetting);
             break;
         }
         case ts.SyntaxKind.MethodDeclaration: {
             createMethodOrAccessor(pandaGen, compiler, objReg, <ts.MethodDeclaration>prop.getValue());
-            pandaGen.storeOwnProperty(prop.getValue(), objReg, keyReg);
+            pandaGen.storeOwnProperty(prop.getValue(), objReg, keyReg, true);
             break;
         }
         case ts.SyntaxKind.GetAccessor: {
@@ -265,12 +267,15 @@ function setUncompiledProperties(compiler: Compiler, pandaGen: PandaGen, propert
                 }
                 case PropertyKind.Constant:
                 case PropertyKind.Variable: {
+                    let nameSetting: boolean = false;
                     if (ts.isMethodDeclaration(prop.getValue())) {
                         createMethodOrAccessor(pandaGen, compiler, objReg, <ts.MethodDeclaration>prop.getValue());
                     } else {
                         compiler.compileExpression(<ts.Expression | ts.Identifier>prop.getValue());
+                        nameSetting = needSettingName(<ts.Expression | ts.Identifier>prop.getValue())
+                            && (<string | number>(prop.getName())).toString().lastIndexOf('.') != -1;
                     }
-                    pandaGen.storeOwnProperty(prop.getValue().parent, objReg, <string | number>(prop.getName()));
+                    pandaGen.storeOwnProperty(prop.getValue().parent, objReg, <string | number>(prop.getName()), nameSetting);
                     break;
                 }
                 case PropertyKind.Prototype: {
@@ -294,4 +299,19 @@ export function createMethodOrAccessor(pandaGen: PandaGen, compiler: Compiler, o
     } else {
         pandaGen.defineMethod(func, internalName, objReg, env);
     }
+}
+
+function needSettingName(node: ts.Node): boolean {
+    let tempNode: ts.Node = node;
+    if (ts.isParenthesizedExpression(node)) {
+        tempNode = findInnerExprOfParenthesis(node);
+    }
+
+    if (ts.isFunctionLike(tempNode) || ts.isClassLike(tempNode)) {
+        let funcOrClassNode = <ts.FunctionLikeDeclaration | ts.ClassLikeDeclaration>tempNode;
+        if (!funcOrClassNode.name) {
+            return true;
+        }
+    }
+    return false;
 }
