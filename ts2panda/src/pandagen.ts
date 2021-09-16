@@ -480,7 +480,7 @@ export class PandaGen {
         }
     }
 
-    storeOwnProperty(node: ts.Node | NodeKind, obj: VReg, prop: VReg | string | number) {
+    storeOwnProperty(node: ts.Node | NodeKind, obj: VReg, prop: VReg | string | number, nameSetting: boolean = false) {
         switch (typeof prop) {
             case "number": {
                 if (isInteger(prop)) {
@@ -495,16 +495,16 @@ export class PandaGen {
                         storeAccumulator(propReg),
                         loadAccumulator(valueReg)
                     );
-                    this.stOwnByValue(node, obj, propReg);
+                    this.stOwnByValue(node, obj, propReg, nameSetting);
                     this.freeTemps(valueReg, propReg);
                 }
                 break;
             }
             case "string":
-                this.stOwnByName(node, obj, prop);
+                this.stOwnByName(node, obj, prop, nameSetting);
                 break;
             default:
-                this.stOwnByValue(node, obj, prop);
+                this.stOwnByValue(node, obj, prop, nameSetting);
         }
     }
 
@@ -551,19 +551,16 @@ export class PandaGen {
         )
     }
 
-    private stOwnByName(node: ts.Node | NodeKind, obj: VReg, string_id: string) {
-        this.add(node, storeOwnByName(obj, string_id));
+    private stOwnByName(node: ts.Node | NodeKind, obj: VReg, string_id: string, nameSetting: boolean) {
+        this.add(node, storeOwnByName(obj, string_id, nameSetting));
     }
 
     private stOwnByIndex(node: ts.Node | NodeKind, obj: VReg, index: number) {
-        this.add(
-            node,
-            storeOwnByIndex(obj, index)
-        )
+        this.add(node, storeOwnByIndex(obj, index));
     }
 
-    private stOwnByValue(node: ts.Node | NodeKind, obj: VReg, value: VReg) {
-        this.add(node, storeOwnByValue(obj, value));
+    private stOwnByValue(node: ts.Node | NodeKind, obj: VReg, value: VReg, nameSetting: boolean) {
+        this.add(node, storeOwnByValue(obj, value, nameSetting));
     }
 
     // eg. print
