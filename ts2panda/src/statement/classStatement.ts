@@ -561,7 +561,7 @@ function compileComputedProperty(compiler: Compiler, prop: Property, classReg: V
             let protoReg = pandaGen.getTemp();
             let tmpReg = pandaGen.getTemp();
             let flag = createClassMethodOrAccessor(compiler, classReg, protoReg, tmpReg, <ts.MethodDeclaration>prop.getValue());
-            pandaGen.storeOwnProperty(prop.getValue(), flag ? protoReg : classReg, keyReg);
+            pandaGen.storeOwnProperty(prop.getValue(), flag ? protoReg : classReg, keyReg, true);
             pandaGen.freeTemps(protoReg, tmpReg);
             break;
         }
