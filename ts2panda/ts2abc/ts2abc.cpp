@@ -12,6 +12,7 @@
  * limitations under the License.
  */
 
+#include <cmath>
 #include <codecvt>
 #include <cstdarg>
 #include <iostream>
@@ -119,6 +120,11 @@ static bool IsValidInt32(double value)
 {
     return (value <= static_cast<double>(std::numeric_limits<int>::max()) &&
         value >= static_cast<double>(std::numeric_limits<int>::min()));
+}
+
+static bool EqualZero(double number)
+{
+    return abs(number - 0.0) < std::numeric_limits<double>::epsilon();
 }
 
 // Unified interface for debug log print
@@ -352,7 +358,7 @@ static void ParseInstructionImms(const Json::Value &ins, panda::pandasm::Ins &pa
             double imsValue = imms[i].asDouble();
             Logd("imm: %lf ", imsValue);
             double intpart;
-            if (std::modf(imsValue, &intpart) == 0.0 && IsValidInt32(imsValue)) {
+            if (EqualZero(std::modf(imsValue, &intpart)) && IsValidInt32(imsValue)) {
                 pandaIns.imms.emplace_back(static_cast<int64_t>(imsValue));
             } else {
                 pandaIns.imms.emplace_back(imsValue);
