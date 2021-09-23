@@ -3,7 +3,7 @@
 - [ts2abc组件<a name="ZH-CN_TOPIC_0000001137330686"></a>](#ts2abc组件)
   - [简介<a name="section11660541593"></a>](#简介)
   - [目录<a name="section161941989596"></a>](#目录)
-  - [说明<a name="section0446154755015"></a>](#说明)
+  - [编译构建<a name="section0446154755015"></a>](#编译构建)
     - [使用说明<a name="section33105542504"></a>](#使用说明)
   - [相关仓<a name="section1371113476307"></a>](#相关仓)
 
@@ -28,13 +28,27 @@ ts2abc组件是方舟运行时子系统的前端工具，支持将JavaScript文�
     └── ts2abc         # abc文件生成相关
 ```
 
-## 说明<a name="section0446154755015"></a>
+## 编译构建<a name="section0446154755015"></a>
 
-ts2abc组件采用命令行交互方式，支持将JavaScript代码转换为方舟字节码文件，使其能够在方舟运行时上运行。支持Windows/Linux/MacOS平台。
+ts2abc组件采用命令行交互方式，支持将JavaScript代码转换为方舟字节码文件，使其能够在方舟运行时上运行。支持Windows/Linux/MacOS平台。方舟前端工具在linux平台上可通过全量编译或指定编译前端工具链获取。
+
+```
+$ ./build.sh --product-name Hi3516DV300 --build-target ark_ts2abc
+```
 
 ### 使用说明<a name="section33105542504"></a>
 
-ts2abc组件将JavaScript文件转换为方舟字节码文件，命令行格式为： node --expose-gc your\_path\_to/index.js \[options\] your\_file.js。当不输入任何option参数时，默认生成方舟二进制文件。其中index.js是ts2abc组件编译后的可执行文件。
+安装`node`和`npm`
+
+使用ts2abc组件将JavaScript文件转换为方舟字节码文件
+
+```
+$ cd out/ohos-arm-release/clang_x64/ark/ark/build
+$ npm install
+$ node --expose-gc src/index.js [options] file.js
+```
+
+当不输入任何option参数时，默认生成方舟二进制文件。
 
 <a name="table2035444615598"></a>
 <table><thead align="left"><tr id="row535415467591"><th class="cellrowborder" valign="top" width="12.898710128987101%" id="mcps1.1.6.1.1"><p id="p13354134619595"><a name="p13354134619595"></a><a name="p13354134619595"></a>选项</p>
