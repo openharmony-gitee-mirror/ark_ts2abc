@@ -790,11 +790,11 @@ static int ParseSmallPieceJson(const std::string &subJson, panda::pandasm::Progr
     return RETURN_SUCCESS;
 }
 
-static int ParseData(const std::string &data, panda::pandasm::Program &prog)
+static bool ParseData(const std::string &data, panda::pandasm::Program &prog)
 {
     if (data.empty()) {
         std::cerr << "the stringify json is empty" << std::endl;
-        return RETURN_FAILED;
+        return false;
     }
 
     size_t pos = 0;
@@ -812,24 +812,24 @@ static int ParseData(const std::string &data, panda::pandasm::Program &prog)
             ReplaceAllDistinct(subJson, "#$", "$");
             if (ParseSmallPieceJson(subJson, prog)) {
                 std::cerr << "fail to parse stringify json" << std::endl;
-                return RETURN_FAILED;
+                return false;
             }
             isStartDollar = true;
         }
     }
 
-    return RETURN_SUCCESS;
+    return true;
 }
 
-static int GenerateProgram(const std::string &data, std::string output,
+static bool GenerateProgram(const std::string &data, std::string output,
                            panda::PandArg<int> optLevelArg,
                            panda::PandArg<std::string> optLogLevelArg)
 {
     panda::pandasm::Program prog = panda::pandasm::Program();
     prog.lang = panda::pandasm::extensions::Language::ECMASCRIPT;
-    if (ParseData(data, prog)) {
+    if (!ParseData(data, prog)) {
         std::cerr << "fail to parse Data!" << std::endl;
-        return RETURN_FAILED;
+        return false;
     }
 
     Logd("parsing done, calling pandasm\n");
@@ -850,44 +850,44 @@ static int GenerateProgram(const std::string &data, std::string output,
 
         if (!panda::pandasm::AsmEmitter::Emit(output.c_str(), prog, statp, mapsp, emitDebugInfo)) {
             std::cerr << "Failed to emit binary data: " << panda::pandasm::AsmEmitter::GetLastError() << std::endl;
-            return RETURN_FAILED;
+            return false;
         }
         panda::bytecodeopt::OptimizeBytecode(&prog, mapsp, output.c_str(), true);
         if (!panda::pandasm::AsmEmitter::Emit(output.c_str(), prog, statp, mapsp, emitDebugInfo)) {
             std::cerr << "Failed to emit binary data: " << panda::pandasm::AsmEmitter::GetLastError() << std::endl;
-            return RETURN_FAILED;
+            return false;
         }
-        return RETURN_SUCCESS;
+        return true;
     }
 #endif
 
     if (!panda::pandasm::AsmEmitter::Emit(output.c_str(), prog, nullptr)) {
         std::cerr << "Failed to emit binary data" << std::endl;
-        return RETURN_FAILED;
+        return false;
     }
 
     Logd("Successfully generated: %s\n", output.c_str());
-    return RETURN_SUCCESS;
+    return true;
 }
 
-static int HandleJsonFile(const std::string &input, std::string &data)
+static bool HandleJsonFile(const std::string &input, std::string &data)
 {
     auto inputAbs = panda::os::file::File::GetAbsolutePath(input);
     if (!inputAbs) {
         std::cerr << "Input file does not exist" << std::endl;
-        return RETURN_FAILED;
+        return false;
     }
     auto fpath = inputAbs.Value();
     if (panda::os::file::File::IsRegularFile(fpath) == false) {
         std::cerr << "Input must be either a regular file or a directory" << std::endl;
-        return RETURN_FAILED;
+        return false;
     }
 
     std::ifstream file;
     file.open(fpath);
     if (file.fail()) {
         std::cerr << "failed to open:" << fpath << std::endl;
-        return RETURN_FAILED;
+        return false;
     }
 
     file.seekg(0, std::ios::end);
@@ -901,10 +901,10 @@ static int HandleJsonFile(const std::string &input, std::string &data)
     Logd(data.c_str());
     Logd("----------------------------------");
 
-    return RETURN_SUCCESS;
+    return true;
 }
 
-static int ReadFromPipe(std::string &data)
+static bool ReadFromPipe(std::string &data)
 {
     const size_t bufSize = 4096;
     const size_t fd = 3;
@@ -915,7 +915,7 @@ static int ReadFromPipe(std::string &data)
     while ((ret = read(fd, buff, bufSize)) != 0) {
         if (ret < 0) {
             std::cerr << "Read pipe error" << std::endl;
-            return RETURN_FAILED;
+            return false;
         }
         buff[ret] = '\0';
         data += buff;
@@ -923,11 +923,11 @@ static int ReadFromPipe(std::string &data)
 
     if (data.empty()) {
         std::cerr << "Nothing has been read from pipe" << std::endl;
-        return RETURN_FAILED;
+        return false;
     }
 
     Logd("finish reading from pipe");
-    return 0;
+    return true;
 }
 
 int main(int argc, const char *argv[])
@@ -1005,7 +1005,7 @@ int main(int argc, const char *argv[])
             std::cerr << argParser.GetHelpString();
             return RETURN_FAILED;
         }
-        if (HandleJsonFile(input, data)) {
+        if (!HandleJsonFile(input, data)) {
             return RETURN_FAILED;
         }
     } else {
@@ -1015,12 +1015,12 @@ int main(int argc, const char *argv[])
             std::cerr << argParser.GetHelpString();
             return RETURN_FAILED;
         }
-        if (ReadFromPipe(data)) {
+        if (!ReadFromPipe(data)) {
             return RETURN_FAILED;
         }
     }
 
-    if (GenerateProgram(data, output, optLevelArg, optLogLevelArg)) {
+    if (!GenerateProgram(data, output, optLevelArg, optLogLevelArg)) {
         std::cerr << "call GenerateProgram fail" << std::endl;
         return RETURN_FAILED;
     }
