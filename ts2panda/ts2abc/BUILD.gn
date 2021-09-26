@@ -43,11 +43,6 @@ config("ts2abc_config") {
       "$ark_root/bytecode_optimizer:bytecodeopt_public_config",
     ]
   }
-
-  cflags_cc = [
-    "-Wno-unused-parameter",
-    "-Wno-unused-variable",
-  ]
 }
 
 ohos_executable("ts2abc") {
