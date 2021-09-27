@@ -28,8 +28,8 @@ import {
     VarDeclarationKind
 } from "../src/variable";
 
-describe("ScopeTest", function() {
-    it("test add 'none' variable to GlobalScope", function() {
+describe("ScopeTest", function () {
+    it("test add 'none' variable to GlobalScope", function () {
         let scope = new GlobalScope();
         let variable = scope.add("x", VarDeclarationKind.NONE);
         expect(variable instanceof GlobalVariable).to.be.true;
@@ -39,7 +39,7 @@ describe("ScopeTest", function() {
         expect(sp).to.be.equal(scope);
     });
 
-    it("test add 'var' variable to GlobalScope", function() {
+    it("test add 'var' variable to GlobalScope", function () {
         let scope = new GlobalScope();
         let variable = scope.add("x", VarDeclarationKind.VAR);
         expect(variable instanceof GlobalVariable).to.be.true;
@@ -49,7 +49,7 @@ describe("ScopeTest", function() {
         expect(sp).to.be.equal(scope);
     });
 
-    it("test add 'let' variable to GlobalScope", function() {
+    it("test add 'let' variable to GlobalScope", function () {
         let scope = new GlobalScope();
         let variable = scope.add("x", VarDeclarationKind.LET);
         expect(variable instanceof LocalVariable).to.be.true;
@@ -59,7 +59,7 @@ describe("ScopeTest", function() {
         expect(sp).to.be.equal(scope);
     });
 
-    it("test add 'const' variable to GlobalScope", function() {
+    it("test add 'const' variable to GlobalScope", function () {
         let scope = new GlobalScope();
         let variable = scope.add("x", VarDeclarationKind.CONST);
         expect(variable instanceof LocalVariable).to.be.true;
@@ -69,14 +69,14 @@ describe("ScopeTest", function() {
         expect(sp).to.be.equal(scope);
     });
 
-    it("test add several variables to GlobalScope", function() {
+    it("test add several variables to GlobalScope", function () {
         let scope = new GlobalScope();
         let x = scope.add("x", VarDeclarationKind.LET);
         let y = scope.add("y", VarDeclarationKind.NONE);
         let z = scope.add("z", VarDeclarationKind.LET);
     });
 
-    it("test add 'none' variable to FunctionScope", function() {
+    it("test add 'none' variable to FunctionScope", function () {
         let globalScope = new GlobalScope();
         let scope = new FunctionScope(globalScope);
         let variable = scope.add("x", VarDeclarationKind.NONE);
@@ -87,7 +87,7 @@ describe("ScopeTest", function() {
         expect(sp).to.be.equal(globalScope);
     });
 
-    it("test add 'var' variable to FunctionScope", function() {
+    it("test add 'var' variable to FunctionScope", function () {
         let scope = new FunctionScope();
         let variable = scope.add("x", VarDeclarationKind.VAR);
         expect(variable instanceof LocalVariable).to.be.true;
@@ -97,7 +97,7 @@ describe("ScopeTest", function() {
         expect(sp).to.be.equal(scope);
     });
 
-    it("test add 'let' variable to FunctionScope", function() {
+    it("test add 'let' variable to FunctionScope", function () {
         let scope = new FunctionScope();
         let variable = scope.add("x", VarDeclarationKind.LET);
         expect(variable instanceof LocalVariable).to.be.true;
@@ -107,7 +107,7 @@ describe("ScopeTest", function() {
         expect(sp).to.be.equal(scope);
     });
 
-    it("test add 'const' variable to FunctionScope", function() {
+    it("test add 'const' variable to FunctionScope", function () {
         let scope = new FunctionScope();
         let variable = scope.add("x", VarDeclarationKind.LET);
         expect(variable instanceof LocalVariable).to.be.true;
@@ -117,7 +117,7 @@ describe("ScopeTest", function() {
         expect(sp).to.be.equal(scope);
     });
 
-    it("test add several variables to FunctionScope", function() {
+    it("test add several variables to FunctionScope", function () {
         let globalScope = new GlobalScope();
         let scope = new FunctionScope(globalScope);
         let x = scope.add("x", VarDeclarationKind.LET);
@@ -125,7 +125,7 @@ describe("ScopeTest", function() {
         let z = scope.add("z", VarDeclarationKind.LET);
     });
 
-    it("test add 'none' variable to LocalScope", function() {
+    it("test add 'none' variable to LocalScope", function () {
         let parent = new FunctionScope();
         let scope = new LocalScope(parent);
         let variable = scope.add("x", VarDeclarationKind.NONE);
@@ -140,7 +140,7 @@ describe("ScopeTest", function() {
         expect(spParent).to.be.equal(undefined);
     });
 
-    it("test add 'var' variable to LocalScope", function() {
+    it("test add 'var' variable to LocalScope", function () {
         let parent = new FunctionScope();
         let scope = new LocalScope(parent);
         let variable = scope.add("x", VarDeclarationKind.VAR);
@@ -155,7 +155,7 @@ describe("ScopeTest", function() {
         expect(spParent).to.be.equal(parent);
     });
 
-    it("test add 'let' variable to LocalScope", function() {
+    it("test add 'let' variable to LocalScope", function () {
         let parent = new FunctionScope();
         let scope = new LocalScope(parent);
         let variable = scope.add("x", VarDeclarationKind.LET);
@@ -168,7 +168,7 @@ describe("ScopeTest", function() {
         expect(outVariableParent === undefined).to.be.true;
     });
 
-    it("test add 'const' variable to LocalScope", function() {
+    it("test add 'const' variable to LocalScope", function () {
         let parent = new FunctionScope();
         let scope = new LocalScope(parent);
         let variable = scope.add("x", VarDeclarationKind.LET);
@@ -181,7 +181,7 @@ describe("ScopeTest", function() {
         expect(outVariableParent === undefined).to.be.true;
     });
 
-    it("test add several variables to LocalScope", function() {
+    it("test add several variables to LocalScope", function () {
         let global = new GlobalScope();
         let parent = new FunctionScope(global);
         let scope = new LocalScope(parent);
@@ -216,7 +216,7 @@ describe("ScopeTest", function() {
      * |  func4  |
      * +---------+
      */
-    it("test multi-scope nesting function", function() {
+    it("test multi-scope nesting function", function () {
         let globalScope = new GlobalScope();
         let func1Scope = new FunctionScope(globalScope);
         let aV = func1Scope.add("a", VarDeclarationKind.LET);
@@ -246,24 +246,24 @@ describe("ScopeTest", function() {
         expect(p2FindEntry.scope).to.be.equal(func1Scope);
 
         // check global
-        expect(globalScope.hasLexEnv(), "gloal has lexenv").to.be.false;
+        // expect(globalScope.hasLexEnv(), "gloal has lexenv").to.be.false;
         // check func1
-        expect(func1Scope.hasLexEnv(), "func1 haslexenv").to.be.true;
+        // expect(func1Scope.hasLexEnv(), "func1 haslexenv").to.be.true;
         expect(func1Scope.getNumLexEnv(), "func1 status").to.be.equal(2);
         // check fun21
-        expect(func21Scope.hasLexEnv(), "func21 has lexenv").to.be.true;
+        // expect(func21Scope.hasLexEnv(), "func21 has lexenv").to.be.true;
         expect(func21Scope.getNumLexEnv(), "func21 status").to.be.equal(0);
         // check fun22
-        expect(func22Scope.hasLexEnv(), "func22 has lexenv").to.be.true;
+        // expect(func22Scope.hasLexEnv(), "func22 has lexenv").to.be.true;
         expect(func22Scope.getNumLexEnv(), "func22 status").to.be.equal(0);
         // check fun31
-        expect(func31Scope.hasLexEnv(), "func31 has lexenv").to.be.false;
+        // expect(func31Scope.hasLexEnv(), "func31 has lexenv").to.be.false;
         expect(func31Scope.getNumLexEnv(), "func31 status").to.be.equal(0);
         // check fun32
-        expect(func32Scope.hasLexEnv(), "func32 has lexenv").to.be.true;
+        // expect(func32Scope.hasLexEnv(), "func32 has lexenv").to.be.true;
         expect(func32Scope.getNumLexEnv(), "func32 status").to.be.equal(0);
         // check fun4
-        expect(func4Scope.hasLexEnv(), "func4 has lexenv").to.be.false;
+        // expect(func4Scope.hasLexEnv(), "func4 has lexenv").to.be.false;
         expect(func4Scope.getNumLexEnv(), "func4 status").to.be.equal(0);
     });
 })

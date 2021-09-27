@@ -17,12 +17,12 @@ import {
   expect
 } from 'chai';
 import 'mocha';
-import { ReturnUndefined } from "../src/irnodes";
-import { compileMainSnippet } from "./utils/base";
+import { EcmaReturnundefined } from "../../src/irnodes";
+import { compileMainSnippet } from "../utils/base";
 
-describe("ReturnStatementTest", function() {
-    it('exitGlobalScope', function() {
-        let insns = compileMainSnippet("var a;");
-        expect(insns[insns.length - 1] instanceof ReturnUndefined).to.be.true;
-    });
+describe("ReturnStatementTest", function () {
+  it('exitGlobalScope', function () {
+    let insns = compileMainSnippet("var a;");
+    expect(insns[insns.length - 1] instanceof EcmaReturnundefined).to.be.true;
+  });
 });

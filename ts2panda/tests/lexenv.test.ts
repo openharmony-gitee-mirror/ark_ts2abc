@@ -20,26 +20,28 @@ import {
     CompilerDriver
 } from "../src/compilerDriver";
 import {
-    Add2Dyn,
-    DefinefuncDyn,
+    EcmaAdd2dyn,
+    EcmaDefinefuncdyn,
+    EcmaIncdyn,
+    EcmaLdlexenvdyn,
+    EcmaLdlexvardyn,
+    EcmaNewlexenvdyn,
+    EcmaReturnundefined,
+    EcmaStglobalvar,
+    EcmaStlettoglobalrecord,
+    EcmaStlexvardyn,
+    EcmaThrowconstassignment,
+    EcmaThrowundefinedifhole,
+    EcmaTonumber,
+    EcmaTrystglobalbyname,
     Imm,
-    IncDyn,
     IRNode,
     LdaDyn,
     LdaiDyn,
     LdaStr,
-    LdLexEnv,
-    LdLexVar,
-    NewLexEnv,
     ResultType,
     ReturnDyn,
-    ReturnUndefined,
     StaDyn,
-    StGlobalVar,
-    StLexVar,
-    ThrowConstAssignment,
-    ThrowUndefinedIfHole,
-    Tonumber,
     VReg
 } from "../src/irnodes";
 import { PandaGen } from "../src/pandagen";
@@ -66,9 +68,9 @@ function MicroCreateLexEnv(numVars: number, hasLexEnv: boolean): IRNode[] {
     let insns = [];
 
     if (hasLexEnv) {
-        insns.push(new NewLexEnv(new Imm(ResultType.Int, numVars)));
+        insns.push(new EcmaNewlexenvdyn(new Imm(ResultType.Int, numVars)));
     } else {
-        insns.push(new LdLexEnv());
+        insns.push(new EcmaLdlexenvdyn());
     }
     insns.push(new StaDyn(new VReg())); // create lexenv
 
@@ -79,16 +81,16 @@ function MicroStoreLexVar(level: number, slot: number, kind?: VarDeclarationKind
     let insns = [];
 
     if (kind && name) {
-        insns.push(new LdLexVar(new Imm(ResultType.Int, level), new Imm(ResultType.Int, slot)));
+        insns.push(new EcmaLdlexvardyn(new Imm(ResultType.Int, level), new Imm(ResultType.Int, slot)));
         insns.push(new StaDyn(new VReg()));
         insns.push(new LdaStr(name));
         insns.push(new StaDyn(new VReg()));
-        insns.push(new ThrowUndefinedIfHole(new VReg(), new VReg()));
+        insns.push(new EcmaThrowundefinedifhole(new VReg(), new VReg()));
         if (kind == VarDeclarationKind.CONST) {
-            insns.push(new ThrowConstAssignment(new VReg()));
+            insns.push(new EcmaThrowconstassignment(new VReg()));
         }
     }
-    insns.push(new StLexVar(new Imm(ResultType.Int, level), new Imm(ResultType.Int, slot), new VReg()));
+    insns.push(new EcmaStlexvardyn(new Imm(ResultType.Int, level), new Imm(ResultType.Int, slot), new VReg()));
     insns.push(new LdaDyn(new VReg()));
 
     return insns;
@@ -97,21 +99,21 @@ function MicroStoreLexVar(level: number, slot: number, kind?: VarDeclarationKind
 function MicroLoadLexVar(level: number, slot: number, kind?: VarDeclarationKind, name?: string): IRNode[] {
     let insns = [];
 
-    insns.push(new LdLexVar(new Imm(ResultType.Int, level), new Imm(ResultType.Int, slot)));
+    insns.push(new EcmaLdlexvardyn(new Imm(ResultType.Int, level), new Imm(ResultType.Int, slot)));
     if (kind && name) {
         insns.push(new StaDyn(new VReg()));
         insns.push(new LdaStr(name));
         insns.push(new StaDyn(new VReg()));
-        insns.push(new ThrowUndefinedIfHole(new VReg(), new VReg()));
+        insns.push(new EcmaThrowundefinedifhole(new VReg(), new VReg()));
         insns.push(new LdaDyn(new VReg()));
     }
 
     return insns;
 }
 
-describe("lexenv-compile-testcase in lexenv.test.ts", function() {
+describe("lexenv-compile-testcase in lexenv.test.ts", function () {
 
-    it("test CompilerDriver.scanFunctions-with-empty", function() {
+    it("test CompilerDriver.scanFunctions-with-empty", function () {
         let source: string = ``;
         let sourceFile = creatAstFromSnippet(source);
         let compilerDriver = new CompilerDriver('UnitTest');
@@ -126,7 +128,7 @@ describe("lexenv-compile-testcase in lexenv.test.ts", function() {
         expect(globalScope.getBindingNode() == sourceFile, "functionblock.node should equal to sourceFile").to.be.true;
     });
 
-    it("test CompilerDriver.scanFunctions-with-embedded-function", function() {
+    it("test CompilerDriver.scanFunctions-with-embedded-function", function () {
         let source: string = `
       {
       function outer() {
@@ -185,7 +187,7 @@ describe("lexenv-compile-testcase in lexenv.test.ts", function() {
         expect(bindingNodeOfSon1.kind, "son1's parent should equal root!").deep.equal(ts.SyntaxKind.FunctionExpression);
     });
 
-    it("test CompilerDriver.postorderanalysis-with-empty", function() {
+    it("test CompilerDriver.postorderanalysis-with-empty", function () {
         let source: string = `
     `;
         let sourceFile = creatAstFromSnippet(source);
@@ -200,7 +202,7 @@ describe("lexenv-compile-testcase in lexenv.test.ts", function() {
         expect(postOrderVariableScopes[0]).to.be.deep.equal(globalScope);
     });
 
-    it("test CompilerDriver.postorderanalysis-with-embeded-function", function() {
+    it("test CompilerDriver.postorderanalysis-with-embeded-function", function () {
         let source: string = `
       {
       function outer() {
@@ -252,7 +254,7 @@ describe("lexenv-compile-testcase in lexenv.test.ts", function() {
      *          |   4   |        |  5   |
      *          +-------+        +------+
     */
-    it("test CompilerDriver.postorderanalysis-with-IIFE", function() {
+    it("test CompilerDriver.postorderanalysis-with-IIFE", function () {
         let source: string = `
     (function (global, factory) { // 1
     } (this, (function () { 'use strict'; // 2
@@ -285,7 +287,7 @@ describe("lexenv-compile-testcase in lexenv.test.ts", function() {
         expect(postOrderVariableScopes[5]).to.be.deep.equal(globalScope);
     });
 
-    it("test loadAccFromLexEnv with loacal variable", function() {
+    it("test loadAccFromLexEnv with loacal variable", function () {
         let globalScope = new GlobalScope();
         let pandaGen = new PandaGen("lexVarPassPandaGen", 1, globalScope);
         let var1 = globalScope.add("var1", VarDeclarationKind.LET);
@@ -307,7 +309,7 @@ describe("lexenv-compile-testcase in lexenv.test.ts", function() {
         expect(checkInstructions(outInsns, expected)).to.be.true;
     });
 
-    it("test loadAccFromLexEnv with lex env variable", function() {
+    it("test loadAccFromLexEnv with lex env variable", function () {
         let globalScope = new GlobalScope();
         let pandaGen = new PandaGen("lexVarPassPandaGen", 1, globalScope);
         let var1 = globalScope.add("var1", VarDeclarationKind.LET);
@@ -323,17 +325,17 @@ describe("lexenv-compile-testcase in lexenv.test.ts", function() {
         let tempReg = new VReg();
         let nameReg = new VReg();
         let expected = [
-            new LdLexVar(new Imm(ResultType.Int, 0), new Imm(ResultType.Int, 0)),
+            new EcmaLdlexvardyn(new Imm(ResultType.Int, 0), new Imm(ResultType.Int, 0)),
             new StaDyn(tempReg),
             new LdaStr("var1"),
             new StaDyn(nameReg),
-            new ThrowUndefinedIfHole(new VReg(), nameReg),
+            new EcmaThrowundefinedifhole(new VReg(), nameReg),
             new LdaDyn(tempReg)
         ];
         expect(checkInstructions(outInsns, expected)).to.be.true;
     });
 
-    it("test storeAccFromLexEnv with local variable", function() {
+    it("test storeAccFromLexEnv with local variable", function () {
         let globalScope = new GlobalScope();
         let pandaGen = new PandaGen("lexVarPassPandaGen", 1, globalScope);
         let var1 = globalScope.add("var1", VarDeclarationKind.LET);
@@ -352,7 +354,7 @@ describe("lexenv-compile-testcase in lexenv.test.ts", function() {
         expect(checkInstructions(outInsns, expected)).to.be.true;
     });
 
-    it("test storeAccFromLexEnv with lex env let-variable", function() {
+    it("test storeAccFromLexEnv with lex env let-variable", function () {
         let globalScope = new GlobalScope();
         let pandaGen = new PandaGen("lexVarPassPandaGen", 1, globalScope);
         let var1 = globalScope.add("var1", VarDeclarationKind.LET);
@@ -369,13 +371,13 @@ describe("lexenv-compile-testcase in lexenv.test.ts", function() {
         let valueReg = new VReg();
         let expected = [
             new StaDyn(valueReg),
-            new StLexVar(new Imm(ResultType.Int, 0), new Imm(ResultType.Int, 0), valueReg),
+            new EcmaStlexvardyn(new Imm(ResultType.Int, 0), new Imm(ResultType.Int, 0), valueReg),
             new LdaDyn(new VReg())
         ];
         expect(checkInstructions(outInsns, expected)).to.be.true;
     });
 
-    it("test storeAccFromLexEnv with lex env const-variable", function() {
+    it("test storeAccFromLexEnv with lex env const-variable", function () {
         let globalScope = new GlobalScope();
         let pandaGen = new PandaGen("lexVarPassPandaGen", 1, globalScope);
         let var1 = globalScope.add("var1", VarDeclarationKind.CONST);
@@ -391,13 +393,13 @@ describe("lexenv-compile-testcase in lexenv.test.ts", function() {
         let valueReg = new VReg();
         let expected = [
             new StaDyn(valueReg),
-            new StLexVar(new Imm(ResultType.Int, 0), new Imm(ResultType.Int, 0), valueReg),
+            new EcmaStlexvardyn(new Imm(ResultType.Int, 0), new Imm(ResultType.Int, 0), valueReg),
             new LdaDyn(valueReg)
         ];
         expect(checkInstructions(outInsns, expected)).to.be.true;
     });
 
-    it("test lexenv variable capture in function", function() {
+    it("test lexenv variable capture in function", function () {
         let source: string = `
       var outer = 1;
 
@@ -409,29 +411,29 @@ describe("lexenv-compile-testcase in lexenv.test.ts", function() {
         let pandaGens = compileAllSnippet(source);
         let expected_main = [
             new LdaDyn(new VReg()),
-            new StGlobalVar("outer"),
-            new DefinefuncDyn("func_func_1", new VReg()),
-            new StGlobalVar("func"),
+            new EcmaStglobalvar("outer"),
+            new EcmaDefinefuncdyn("func", new Imm(ResultType.Int, 0), new VReg()),
+            new EcmaStglobalvar("func"),
             new LdaiDyn(new Imm(ResultType.Int, 1)),
-            new StGlobalVar("outer"),
-            new ReturnUndefined()
+            new EcmaStglobalvar("outer"),
+            new EcmaReturnundefined()
         ];
         let expected_func = [
             new LdaiDyn(new Imm(ResultType.Int, 2)),
-            new StGlobalVar("outer"),
-            new ReturnUndefined()
+            new EcmaStglobalvar("outer"),
+            new EcmaReturnundefined()
         ];
 
         pandaGens.forEach((pg) => {
             if (pg.internalName == "func_main_0") {
                 expect(checkInstructions(pg.getInsns(), expected_main)).to.be.true;
-            } else if (pg.internalName == "func_func_1") {
+            } else if (pg.internalName == "func") {
                 expect(checkInstructions(pg.getInsns(), expected_func)).to.be.true;
             }
         })
     });
 
-    it("test lexenv let capture in function", function() {
+    it("test lexenv let capture in function", function () {
         let source: string = `
       let outer = 1;
 
@@ -440,45 +442,44 @@ describe("lexenv-compile-testcase in lexenv.test.ts", function() {
       }
     `;
 
-        let insnsCreateLexEnv_main = MicroCreateLexEnv(1, true);
-        let insnsStoreLexVar_main = MicroStoreLexVar(0, 0);
+        let insnsCreateLexEnv_main = MicroCreateLexEnv(1, false);
         let passes = [new CacheExpander()];
         let pandaGens = compileAllSnippet(source, passes);
         let expected_main = [
             ...insnsCreateLexEnv_main,
-            new DefinefuncDyn("func_func_1", new VReg()),
-            new StGlobalVar("func"), // global.func = func_func_1
+            new EcmaDefinefuncdyn("func", new Imm(ResultType.Int, 0), new VReg()),
+            new EcmaStglobalvar("func"), // global.func = func_func_1
             new LdaiDyn(new Imm(ResultType.Int, 1)), // value = 1
-            new StaDyn(new VReg()),
-            ...insnsStoreLexVar_main,
-            new ReturnUndefined()
+            // ...insnsStoreLexVar_main,
+            new EcmaStlettoglobalrecord("outer"),
+            new EcmaReturnundefined()
         ];
-        let insnsStoreLexVar_func = MicroStoreLexVar(1, 0, VarDeclarationKind.LET, "outer");
-        let insnsCreateLexEnv_func = MicroCreateLexEnv(0, true);
+        let insnsCreateLexEnv_func = MicroCreateLexEnv(0, false);
         let expected_func = [
             ...insnsCreateLexEnv_func,
             new LdaiDyn(new Imm(ResultType.Int, 2)),
-            new StaDyn(new VReg()),
-            ...insnsStoreLexVar_func,
-            new ReturnUndefined()
+            // ...insnsStoreLexVar_func,
+            new EcmaTrystglobalbyname("outer"),
+            new EcmaReturnundefined()
         ];
 
         pandaGens.forEach((pg) => {
             let scope = <VariableScope>pg.getScope();
             if (pg.internalName == "func_main_0") {
                 expect(checkInstructions(pg.getInsns(), expected_main), "check main insns").to.be.true;
-                expect(scope.getNumLexEnv(), "main scope has 1 lexvar").to.be.equal(1);
-                expect(scope.hasLexEnv(), "main scope has lexenv").to.be.true;
-            } else if (pg.internalName == "func_func_1") {
+                expect(scope.getNumLexEnv(), "main scope has 0 lexvar").to.be.equal(0);
+                // expect(scope.hasLexEnv(), "main scope has lexenv").to.be.true;
+            } else if (pg.internalName == "func") {
+
                 expect(checkInstructions(pg.getInsns(), expected_func), "check func insns").to.be.true;
                 expect(scope.getNumLexEnv(), "func scope has 1 lexvar").to.be.equal(0);
-                expect(scope.hasLexEnv(), "func scope has lexenv").to.be.true;
+                // expect(scope.hasLexEnv(), "func scope has lexenv").to.be.true;
             }
         });
 
     });
 
-    it("test lexenv capture in function", function() {
+    it("test lexenv capture in function", function () {
         let source: string = `
       var a = 1;
       function outer(a, b) {
@@ -504,7 +505,7 @@ describe("lexenv-compile-testcase in lexenv.test.ts", function() {
             new LdaDyn(new VReg()),
             new StaDyn(new VReg()),
             ...insnsStoreLexVar_outer_2,
-            new DefinefuncDyn("func_2", new VReg()),
+            new EcmaDefinefuncdyn("#2#", new Imm(ResultType.Int, 0), new VReg()),
             // returnStatement
             new StaDyn(new VReg()),
             new LdaDyn(new VReg()),
@@ -516,14 +517,14 @@ describe("lexenv-compile-testcase in lexenv.test.ts", function() {
             ...MicroCreateLexEnv(0, true),
             ...MicroLoadLexVar(1, 0),
             new StaDyn(new VReg()),
-            new IncDyn(new VReg()),
+            new EcmaIncdyn(new VReg()),
             new StaDyn(new VReg()),
             ...MicroStoreLexVar(1, 0),
-            new Tonumber(new VReg()), // this is reduntant load varialbe
+            new EcmaTonumber(new VReg()), // this is reduntant load varialbe
             ...MicroLoadLexVar(1, 0),
             new StaDyn(new VReg),
             ...MicroLoadLexVar(1, 1),
-            new Add2Dyn(new VReg()),
+            new EcmaAdd2dyn(new VReg()),
             // returnStatement
             new StaDyn(new VReg()),
             new LdaDyn(new VReg()),
@@ -535,20 +536,20 @@ describe("lexenv-compile-testcase in lexenv.test.ts", function() {
         snippetCompiler.compile(source, passes);
 
         // check compile result!
-        let outerPg = snippetCompiler.getPandaGenByName("func_outer_1");
+        let outerPg = snippetCompiler.getPandaGenByName("outer");
         let outerScope = outerPg!.getScope();
         let outerA = outerScope!.findLocal("a");
         expect(outerA instanceof LocalVariable, "a in outer is local variable").to.be.true;
-        expect((<FunctionScope>outerScope).hasLexEnv(), "outer scope need to create lex env").to.be.true;
+        // expect((<FunctionScope>outerScope).hasLexEnv(), "outer scope need to create lex env").to.be.true;
         expect((<FunctionScope>outerScope).getNumLexEnv(), "number of lexvar at outer scope").to.be.equal(2);
-        let anonymousPg = snippetCompiler.getPandaGenByName("func_2");
+        let anonymousPg = snippetCompiler.getPandaGenByName("#2#");
         let anonymousScope = anonymousPg!.getScope();
         let anonymousA = anonymousScope!.findLocal("a");
         let searchRlt = anonymousScope!.find("a");
         expect(searchRlt!.level).to.be.equal(1);
         expect(searchRlt!.scope, "a is defined in outerscope").to.be.deep.equal(outerScope);
         expect(anonymousA, "no a in anonymous function").to.be.undefined;
-        expect((<FunctionScope>anonymousScope).hasLexEnv(), "anonymous scope had lex env").to.be.true;
+        // expect((<FunctionScope>anonymousScope).hasLexEnv(), "anonymous scope had lex env").to.be.true;
         expect((<FunctionScope>anonymousScope).getNumLexEnv()).to.be.equal(0);
         let globalPg = snippetCompiler.getPandaGenByName("func_main_0");
         let globalScope = globalPg!.getScope();

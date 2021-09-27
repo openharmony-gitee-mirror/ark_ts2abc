@@ -18,21 +18,21 @@ import {
 } from 'chai';
 import 'mocha';
 import {
+    EcmaReturnundefined,
     LdaDyn,
-    ReturnUndefined,
     VReg
 } from "../src/irnodes";
 import { checkInstructions, compileMainSnippet } from "./utils/base";
 
-describe("BuiltInsTest", function() {
-    it("Global Value Properties", function() {
+describe("BuiltInsTest", function () {
+    it("Global Value Properties", function () {
         let insns = compileMainSnippet(`NaN; Infinity; globalThis;`);
         let expected = [
             new LdaDyn(new VReg()),
             new LdaDyn(new VReg()),
             new LdaDyn(new VReg()),
 
-            new ReturnUndefined()
+            new EcmaReturnundefined()
         ];
         expect(checkInstructions(insns, expected)).to.be.true;
     });

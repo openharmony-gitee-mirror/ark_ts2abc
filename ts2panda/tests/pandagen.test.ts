@@ -13,11 +13,11 @@
  * limitations under the License.
  */
 
-import * as ts from "typescript";
 import {
     expect
 } from 'chai';
 import 'mocha';
+import * as ts from "typescript";
 import {
     StaDyn,
     VReg
@@ -25,8 +25,8 @@ import {
 import { PandaGen } from "../src/pandagen";
 import { checkInstructions } from "./utils/base";
 
-describe("PandaGenTest", function() {
-    it("StoreAccumulator", function() {
+describe("PandaGenTest", function () {
+    it("StoreAccumulator", function () {
         let pandaGen = new PandaGen("pandaGen", 0);
         let vreg = new VReg();
         pandaGen.storeAccumulator(ts.createNode(0), vreg);

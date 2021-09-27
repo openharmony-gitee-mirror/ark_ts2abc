@@ -18,27 +18,27 @@ import {
 } from 'chai';
 import 'mocha';
 import {
+    EcmaReturnundefined,
+    EcmaStlettoglobalrecord,
+    EcmaThrowdyn,
+    EcmaTrystglobalbyname,
     Imm,
     Jmp,
     Label,
     LdaDyn,
     LdaiDyn,
     ResultType,
-    ReturnDyn,
-    ReturnUndefined,
     StaDyn,
-    ThrowDyn,
     VReg
-} from "../src/irnodes";
-import { checkInstructions, compileMainSnippet } from "./utils/base";
+} from "../../src/irnodes";
+import { checkInstructions, compileMainSnippet } from "../utils/base";
 
-describe("TryCatch", function() {
-    it('tryCatch', function() {
+describe("TryCatch", function () {
+    it('tryCatch', function () {
         let insns = compileMainSnippet(`let a = 0;
                                try {a = 1;}
                                catch {a = 2;}`);
 
-        let a = new VReg();
         let tryBeginLabel = new Label();
         let tryEndLabel = new Label();
         let catchBeginLabel = new Label();
@@ -46,28 +46,27 @@ describe("TryCatch", function() {
 
         let expected = [
             new LdaiDyn(new Imm(ResultType.Int, 0)),
-            new StaDyn(a),
+            new EcmaStlettoglobalrecord('a'),
             tryBeginLabel,
             new LdaiDyn(new Imm(ResultType.Int, 1)),
-            new StaDyn(a),
+            new EcmaTrystglobalbyname('a'),
             tryEndLabel,
             new Jmp(catchEndLabel),
             catchBeginLabel,
             new LdaiDyn(new Imm(ResultType.Int, 2)),
-            new StaDyn(a),
+            new EcmaTrystglobalbyname('a'),
             catchEndLabel,
-            new ReturnUndefined()
+            new EcmaReturnundefined()
         ];
 
         expect(checkInstructions(insns, expected)).to.be.true;
     });
 
-    it('tryCatchWithIdentifier', function() {
+    it('tryCatchWithIdentifier', function () {
         let insns = compileMainSnippet(`let a = 0;
                                try {a = 1;}
                                catch(err) {a = 2;}`);
 
-        let a = new VReg();
         let tryBeginLabel = new Label();
         let tryEndLabel = new Label();
         let catchBeginLabel = new Label();
@@ -76,29 +75,28 @@ describe("TryCatch", function() {
 
         let expected = [
             new LdaiDyn(new Imm(ResultType.Int, 0)),
-            new StaDyn(a),
+            new EcmaStlettoglobalrecord('a'),
             tryBeginLabel,
             new LdaiDyn(new Imm(ResultType.Int, 1)),
-            new StaDyn(a),
+            new EcmaTrystglobalbyname('a'),
             tryEndLabel,
             new Jmp(catchEndLabel),
             catchBeginLabel,
             new StaDyn(err),
             new LdaiDyn(new Imm(ResultType.Int, 2)),
-            new StaDyn(a),
+            new EcmaTrystglobalbyname('a'),
             catchEndLabel,
-            new ReturnUndefined()
+            new EcmaReturnundefined()
         ];
 
         expect(checkInstructions(insns, expected)).to.be.true;
     });
 
-    it('tryFinally', function() {
+    it('tryFinally', function () {
         let insns = compileMainSnippet(`let a = 0;
                                try {a = 1;}
                                finally {a = 3;}`);
 
-        let a = new VReg();
         let tryBeginLabel = new Label();
         let tryEndLabel = new Label();
         let catchBeginLabel = new Label();
@@ -107,34 +105,33 @@ describe("TryCatch", function() {
 
         let expected = [
             new LdaiDyn(new Imm(ResultType.Int, 0)),
-            new StaDyn(a),
+            new EcmaStlettoglobalrecord('a'),
             tryBeginLabel,
             new LdaiDyn(new Imm(ResultType.Int, 1)),
-            new StaDyn(a),
+            new EcmaTrystglobalbyname('a'),
             tryEndLabel,
             new LdaiDyn(new Imm(ResultType.Int, 3)),
-            new StaDyn(a),
+            new EcmaTrystglobalbyname('a'),
             new Jmp(catchEndLabel),
             catchBeginLabel,
             new StaDyn(exceptionVreg),
             new LdaiDyn(new Imm(ResultType.Int, 3)),
-            new StaDyn(a),
+            new EcmaTrystglobalbyname('a'),
             new LdaDyn(exceptionVreg),
-            new ThrowDyn(),
+            new EcmaThrowdyn(),
             catchEndLabel,
-            new ReturnUndefined()
+            new EcmaReturnundefined()
         ];
 
         expect(checkInstructions(insns, expected)).to.be.true;
     });
 
-    it('tryCatchFinally', function() {
+    it('tryCatchFinally', function () {
         let insns = compileMainSnippet(`let a = 0;
                                try {a = 1;}
                                catch {a = 2;}
                                finally {a = 3;}`);
 
-        let a = new VReg();
         let exceptionVreg = new VReg();
         let tryBeginLabel = new Label();
         let tryEndLabel = new Label();
@@ -147,29 +144,29 @@ describe("TryCatch", function() {
 
         let expected = [
             new LdaiDyn(new Imm(ResultType.Int, 0)),
-            new StaDyn(a),
+            new EcmaStlettoglobalrecord('a'),
             tryBeginLabel,
             nestedTryBeginLabel,
             new LdaiDyn(new Imm(ResultType.Int, 1)),
-            new StaDyn(a),
+            new EcmaTrystglobalbyname('a'),
             nestedTryEndLabel,
             new Jmp(tryEndLabel),
             nestedCatchBeginLabel,
             new LdaiDyn(new Imm(ResultType.Int, 2)),
-            new StaDyn(a),
+            new EcmaTrystglobalbyname('a'),
             nestedCatchEndLabel,
             tryEndLabel,
             new LdaiDyn(new Imm(ResultType.Int, 3)),
-            new StaDyn(a),
+            new EcmaTrystglobalbyname('a'),
             new Jmp(catchEndLabel),
             catchBeginLabel,
             new StaDyn(exceptionVreg),
             new LdaiDyn(new Imm(ResultType.Int, 3)),
-            new StaDyn(a),
+            new EcmaTrystglobalbyname('a'),
             new LdaDyn(exceptionVreg),
-            new ThrowDyn(),
+            new EcmaThrowdyn(),
             catchEndLabel,
-            new ReturnUndefined()
+            new EcmaReturnundefined()
         ];
 
         expect(checkInstructions(insns, expected)).to.be.true;

@@ -18,83 +18,83 @@ import {
 } from 'chai';
 import 'mocha';
 import {
-    CreateEmptyArray,
+    EcmaCreateemptyarray,
+    EcmaLdobjbyname,
+    EcmaNewobjdynrange,
+    EcmaNewobjspreaddyn,
+    EcmaReturnundefined,
+    EcmaStarrayspread,
+    EcmaTryldglobalbyname,
     Imm,
     LdaDyn,
     LdaiDyn,
-    LdObjByName,
     MovDyn,
-    NewObjDynRange,
-    NewobjSpread,
     ResultType,
-    ReturnUndefined,
     StaDyn,
-    StArraySpread,
-    TryLdGlobalByName,
     VReg
 } from "../../src/irnodes";
 import { checkInstructions, compileMainSnippet } from "../utils/base";
 
-describe("NewTest", function() {
-    it("new Object", function() {
+describe("NewTest", function () {
+    it("new Object", function () {
         let insns = compileMainSnippet("new Object");
         let arg0 = new VReg();
         let targetReg = new VReg();
 
         let expected = [
-            new TryLdGlobalByName("Object"),
+            new EcmaTryldglobalbyname("Object"),
             new StaDyn(arg0),
             new MovDyn(targetReg, arg0),
 
-            new NewObjDynRange(new Imm(ResultType.Int, 2), [arg0, targetReg]),
+            new EcmaNewobjdynrange(new Imm(ResultType.Int, 2), [arg0, targetReg]),
 
-            new ReturnUndefined()
+            new EcmaReturnundefined()
         ];
 
         expect(checkInstructions(insns, expected)).to.be.true;
     });
 
-    it("new Object()", function() {
+    it("new Object()", function () {
         let insns = compileMainSnippet("new Object()");
         let arg0 = new VReg();
         let targetReg = new VReg();
 
         let expected = [
-            new TryLdGlobalByName("Object"),
+            new EcmaTryldglobalbyname("Object"),
             new StaDyn(arg0),
             new MovDyn(targetReg, arg0),
 
-            new NewObjDynRange(new Imm(ResultType.Int, 2), [arg0, targetReg]),
+            new EcmaNewobjdynrange(new Imm(ResultType.Int, 2), [arg0, targetReg]),
 
-            new ReturnUndefined()
+            new EcmaReturnundefined()
         ];
 
         expect(checkInstructions(insns, expected)).to.be.true;
     });
 
-    it("new Object(2)", function() {
+    it("new Object(2)", function () {
         let insns = compileMainSnippet("new Object(2)");
         let arg0 = new VReg();
         let arg1 = new VReg();
         let targetReg = new VReg();
 
         let expected = [
-            new TryLdGlobalByName("Object"),
+            new EcmaTryldglobalbyname("Object"),
             new StaDyn(arg0),
             new MovDyn(targetReg, arg0),
 
             new LdaiDyn(new Imm(ResultType.Int, 2)),
             new StaDyn(arg1),
 
-            new NewObjDynRange(new Imm(ResultType.Int, 3), [arg0, targetReg, arg1]),
+            new EcmaNewobjdynrange(new Imm(ResultType.Int, 3), [arg0, targetReg, arg1]),
 
-            new ReturnUndefined()
+            new EcmaReturnundefined()
         ];
 
         expect(checkInstructions(insns, expected)).to.be.true;
     });
 
-    it("new obj.ctor()", function() {
+    it("new obj.ctor()", function () {
         let insns = compileMainSnippet("let obj; new obj.ctor()");
         let obj = new VReg();
         let arg0 = new VReg();
@@ -102,14 +102,14 @@ describe("NewTest", function() {
         let targetReg = new VReg();
 
         let expected = [
-            new LdaDyn(obj),
+            new EcmaTryldglobalbyname('obj'),
             new StaDyn(temp),
 
-            new LdObjByName("ctor", obj),
+            new EcmaLdobjbyname("ctor", obj),
             new StaDyn(arg0),
             new MovDyn(targetReg, arg0),
 
-            new NewObjDynRange(new Imm(ResultType.Int, 2), [arg0, targetReg]),
+            new EcmaNewobjdynrange(new Imm(ResultType.Int, 2), [arg0, targetReg]),
         ];
 
         insns = insns.slice(2, insns.length - 1);
@@ -117,7 +117,7 @@ describe("NewTest", function() {
         expect(checkInstructions(insns, expected)).to.be.true;
     });
 
-    it("new Object(...args)", function() {
+    it("new Object(...args)", function () {
         let insns = compileMainSnippet(`new Object(...args);`);
         let arg0 = new VReg();
         let elemIdxReg = new VReg();
@@ -125,23 +125,23 @@ describe("NewTest", function() {
         let arrayInstance = new VReg();
 
         let expected = [
-            new TryLdGlobalByName("Object"),
+            new EcmaTryldglobalbyname("Object"),
             new StaDyn(arg0),
             new MovDyn(targetReg, arg0),
 
-            new CreateEmptyArray(),
+            new EcmaCreateemptyarray(),
             new StaDyn(arrayInstance),
             new LdaiDyn(new Imm(ResultType.Int, 0)),
             new StaDyn(elemIdxReg),
 
-            new TryLdGlobalByName("args"),
-            new StArraySpread(arrayInstance, elemIdxReg),
+            new EcmaTryldglobalbyname("args"),
+            new EcmaStarrayspread(arrayInstance, elemIdxReg),
             new StaDyn(elemIdxReg),
             new LdaDyn(arrayInstance),
 
-            new NewobjSpread(arg0, targetReg),
+            new EcmaNewobjspreaddyn(arg0, targetReg),
 
-            new ReturnUndefined()
+            new EcmaReturnundefined()
         ];
 
         expect(checkInstructions(insns, expected)).to.be.true;

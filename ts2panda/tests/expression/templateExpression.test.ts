@@ -18,22 +18,22 @@ import {
 } from 'chai';
 import 'mocha';
 import {
-    Add2Dyn,
-    CalliThisRangeDyn,
-    GetTemplateObject,
+    EcmaAdd2dyn,
+    EcmaCallithisrangedyn,
+    EcmaCreateemptyarray,
+    EcmaGettemplateobject,
+    EcmaLdobjbyname,
+    EcmaReturnundefined,
+    EcmaStobjbyvalue,
+    EcmaTryldglobalbyname,
     Imm,
     IRNode,
     LdaDyn,
     LdaiDyn,
     LdaStr,
-    LdObjByName,
     MovDyn,
     ResultType,
-    ReturnUndefined,
     StaDyn,
-    StObjByValue,
-    TryLdGlobalByName,
-    CreateEmptyArray,
     VReg
 } from "../../src/irnodes";
 import { checkInstructions, compileMainSnippet } from "../utils/base";
@@ -45,7 +45,7 @@ function MicroCreateAddInsns(leftVal: number, rightVal: number): IRNode[] {
     insns.push(new LdaiDyn(new Imm(ResultType.Int, leftVal)));
     insns.push(new StaDyn(lhs));
     insns.push(new LdaiDyn(new Imm(ResultType.Int, rightVal)));
-    insns.push(new Add2Dyn(lhs));
+    insns.push(new EcmaAdd2dyn(lhs));
 
     return insns;
 }
@@ -55,9 +55,9 @@ function MicroCreateObjAndPropInsns(): IRNode[] {
     let obj = new VReg();
     let val = new VReg();
 
-    insns.push(new TryLdGlobalByName("String"));
+    insns.push(new EcmaTryldglobalbyname("String"));
     insns.push(new StaDyn(obj));
-    insns.push(new LdObjByName("raw", obj));
+    insns.push(new EcmaLdobjbyname("raw", obj));
     insns.push(new StaDyn(val));
 
     return insns;
@@ -68,33 +68,33 @@ function MicroGetTemplateObject(rawArr: VReg, cookedArr: VReg): IRNode[] {
     let objReg = new VReg();
     let indexReg = new VReg();
 
-    insns.push(new CreateEmptyArray());
+    insns.push(new EcmaCreateemptyarray());
     insns.push(new StaDyn(objReg));
 
     insns.push(new LdaiDyn(new Imm(ResultType.Int, 0)));
     insns.push(new StaDyn(indexReg));
     insns.push(new LdaDyn(rawArr));
-    insns.push(new StObjByValue(objReg,indexReg));
+    insns.push(new EcmaStobjbyvalue(objReg, indexReg));
     insns.push(new LdaiDyn(new Imm(ResultType.Int, 1)));
     insns.push(new StaDyn(indexReg));
     insns.push(new LdaDyn(cookedArr));
-    insns.push(new StObjByValue(objReg,indexReg));
-    insns.push(new GetTemplateObject(objReg));
+    insns.push(new EcmaStobjbyvalue(objReg, indexReg));
+    insns.push(new EcmaGettemplateobject(objReg));
     return insns;
 
 }
 
-describe("templateExpressionTest", function() {
-    it("`string text line 1`", function() {
+describe("templateExpressionTest", function () {
+    it("`string text line 1`", function () {
         let insns = compileMainSnippet("`string text line 1`;");
         let expected = [
             new LdaStr("string text line 1"),
-            new ReturnUndefined()
+            new EcmaReturnundefined()
         ];
         expect(checkInstructions(insns, expected)).to.be.true;
     });
 
-    it("`Fifteen is ${5 + 10}`", function() {
+    it("`Fifteen is ${5 + 10}`", function () {
         let insns = compileMainSnippet("`Fifteen is ${5 + 10}`");
         let headVal = new VReg();
 
@@ -102,13 +102,13 @@ describe("templateExpressionTest", function() {
             new LdaStr("Fifteen is "),
             new StaDyn(headVal),
             ...MicroCreateAddInsns(5, 10),
-            new Add2Dyn(headVal),
-            new ReturnUndefined()
+            new EcmaAdd2dyn(headVal),
+            new EcmaReturnundefined()
         ]
         expect(checkInstructions(insns, expected)).to.be.true;
     });
 
-    it("String.raw`string text line 1`", function() {
+    it("String.raw`string text line 1`", function () {
         let insns = compileMainSnippet("String.raw`string text line 1`;");
         let obj = new VReg();
         let prop = new VReg();
@@ -122,34 +122,34 @@ describe("templateExpressionTest", function() {
         let expected = [
 
             ...MicroCreateObjAndPropInsns(),
-            new CreateEmptyArray(),
+            new EcmaCreateemptyarray(),
             new StaDyn(rawArr),
-            new CreateEmptyArray(),
+            new EcmaCreateemptyarray(),
             new StaDyn(cookedArr),
 
             new LdaiDyn(new Imm(ResultType.Int, 0)),
             new StaDyn(elemIdxReg),
             new LdaStr("string text line 1"),
-            new StObjByValue(rawArr, elemIdxReg),
+            new EcmaStobjbyvalue(rawArr, elemIdxReg),
 
             new LdaStr("string text line 1"),
-            new StObjByValue(cookedArr, elemIdxReg),
-            new MovDyn(rawArr1,rawArr),
-            new MovDyn(cookedArr1,cookedArr),
+            new EcmaStobjbyvalue(cookedArr, elemIdxReg),
+            new MovDyn(rawArr1, rawArr),
+            new MovDyn(cookedArr1, cookedArr),
 
             ...MicroGetTemplateObject(rawArr1, cookedArr),
             new StaDyn(templateObj),
 
             // structure call 
-            new CalliThisRangeDyn(new Imm(ResultType.Int, 2), [prop, obj, templateObj]),
+            new EcmaCallithisrangedyn(new Imm(ResultType.Int, 2), [prop, obj, templateObj]),
 
-            new ReturnUndefined()
+            new EcmaReturnundefined()
         ];
 
         expect(checkInstructions(insns, expected)).to.be.true;
     });
 
-    it("String.raw`string text line 1\\nstring text line 2`", function() {
+    it("String.raw`string text line 1\\nstring text line 2`", function () {
         let insns = compileMainSnippet("String.raw`string text line 1\\nstring text line 2`;");
         let obj = new VReg();
         let prop = new VReg();
@@ -163,34 +163,34 @@ describe("templateExpressionTest", function() {
         let expected = [
 
             ...MicroCreateObjAndPropInsns(),
-            new CreateEmptyArray(),
+            new EcmaCreateemptyarray(),
             new StaDyn(rawArr),
-            new CreateEmptyArray(),
+            new EcmaCreateemptyarray(),
             new StaDyn(cookedArr),
 
             new LdaiDyn(new Imm(ResultType.Int, 0)),
             new StaDyn(elemIdxReg),
             new LdaStr("string text line 1\\nstring text line 2"),
-            new StObjByValue(rawArr, elemIdxReg),
+            new EcmaStobjbyvalue(rawArr, elemIdxReg),
 
             new LdaStr("string text line 1\nstring text line 2"),
-            new StObjByValue(cookedArr, elemIdxReg),
-            new MovDyn(rawArr1,rawArr),
-            new MovDyn(cookedArr1,cookedArr),
+            new EcmaStobjbyvalue(cookedArr, elemIdxReg),
+            new MovDyn(rawArr1, rawArr),
+            new MovDyn(cookedArr1, cookedArr),
 
             ...MicroGetTemplateObject(rawArr1, cookedArr1),
             new StaDyn(templateObj),
 
             // structure call 
-            new CalliThisRangeDyn(new Imm(ResultType.Int, 2), [prop, obj, templateObj]),
+            new EcmaCallithisrangedyn(new Imm(ResultType.Int, 2), [prop, obj, templateObj]),
 
-            new ReturnUndefined()
+            new EcmaReturnundefined()
         ];
 
         expect(checkInstructions(insns, expected)).to.be.true;
     });
 
-    it("String.raw`Fifteen is ${5 + 10} !!`", function() {
+    it("String.raw`Fifteen is ${5 + 10} !!`", function () {
         let insns = compileMainSnippet("String.raw`Fifteen is ${5 + 10} !!`");
         let obj = new VReg();
         let prop = new VReg();
@@ -205,25 +205,25 @@ describe("templateExpressionTest", function() {
         let expected = [
 
             ...MicroCreateObjAndPropInsns(),
-            new CreateEmptyArray(),
+            new EcmaCreateemptyarray(),
             new StaDyn(rawArr),
-            new CreateEmptyArray(),
+            new EcmaCreateemptyarray(),
             new StaDyn(cookedArr),
 
             new LdaiDyn(new Imm(ResultType.Int, 0)),
             new StaDyn(elemIdxReg),
             new LdaStr("Fifteen is "),
-            new StObjByValue(rawArr, elemIdxReg),
+            new EcmaStobjbyvalue(rawArr, elemIdxReg),
             new LdaStr("Fifteen is "),
-            new StObjByValue(cookedArr, elemIdxReg),
+            new EcmaStobjbyvalue(cookedArr, elemIdxReg),
             new LdaiDyn(new Imm(ResultType.Int, 1)),
             new StaDyn(elemIdxReg),
             new LdaStr(" !!"),
-            new StObjByValue(rawArr, elemIdxReg),
+            new EcmaStobjbyvalue(rawArr, elemIdxReg),
             new LdaStr(" !!"),
-            new StObjByValue(cookedArr, elemIdxReg),
-            new MovDyn(rawArr1,rawArr),
-            new MovDyn(cookedArr1,cookedArr),
+            new EcmaStobjbyvalue(cookedArr, elemIdxReg),
+            new MovDyn(rawArr1, rawArr),
+            new MovDyn(cookedArr1, cookedArr),
 
             ...MicroGetTemplateObject(rawArr1, cookedArr1),
             new StaDyn(templateObj),
@@ -232,13 +232,13 @@ describe("templateExpressionTest", function() {
             new StaDyn(addRet),
 
             // structure call
-            new CalliThisRangeDyn(new Imm(ResultType.Int, 3), [prop, obj, rawArr, templateObj]),
-            new ReturnUndefined()
+            new EcmaCallithisrangedyn(new Imm(ResultType.Int, 3), [prop, obj, rawArr, templateObj]),
+            new EcmaReturnundefined()
         ];
         expect(checkInstructions(insns, expected)).to.be.true;
     });
 
-    it("String.raw`Fifteen is ${5 + 10} !!\\n Is not ${15 + 10} !!!`", function() {
+    it("String.raw`Fifteen is ${5 + 10} !!\\n Is not ${15 + 10} !!!`", function () {
         let insns = compileMainSnippet("String.raw`Fifteen is ${5 + 10} !!\\n Is not ${15 + 10} !!!\\n`");
         let obj = new VReg();
         let val = new VReg();
@@ -255,32 +255,32 @@ describe("templateExpressionTest", function() {
         let expected = [
 
             ...MicroCreateObjAndPropInsns(),
-            new CreateEmptyArray(),
+            new EcmaCreateemptyarray(),
             new StaDyn(rawArr),
-            new CreateEmptyArray(),
+            new EcmaCreateemptyarray(),
             new StaDyn(cookedArr),
 
             new LdaiDyn(new Imm(ResultType.Int, 0)),
             new StaDyn(elemIdxReg),
             new LdaStr("Fifteen is "),
-            new StObjByValue(rawArr, elemIdxReg),
+            new EcmaStobjbyvalue(rawArr, elemIdxReg),
             new LdaStr("Fifteen is "),
-            new StObjByValue(cookedArr, elemIdxReg),
+            new EcmaStobjbyvalue(cookedArr, elemIdxReg),
             new LdaiDyn(new Imm(ResultType.Int, 1)),
             new StaDyn(elemIdxReg),
             new LdaStr(" !!\\n Is not "),
-            new StObjByValue(rawArr, elemIdxReg),
+            new EcmaStobjbyvalue(rawArr, elemIdxReg),
             new LdaStr(" !!\n Is not "),
-            new StObjByValue(cookedArr, elemIdxReg),
+            new EcmaStobjbyvalue(cookedArr, elemIdxReg),
             new LdaiDyn(new Imm(ResultType.Int, 2)),
             new StaDyn(elemIdxReg),
             new LdaStr(" !!!\\n"),
-            new StObjByValue(rawArr, elemIdxReg),
+            new EcmaStobjbyvalue(rawArr, elemIdxReg),
             new LdaStr(" !!!\n"),
-            new StObjByValue(cookedArr, elemIdxReg),
-            new MovDyn(rawArr1,rawArr),
-            new MovDyn(cookedArr1,cookedArr),
-            
+            new EcmaStobjbyvalue(cookedArr, elemIdxReg),
+            new MovDyn(rawArr1, rawArr),
+            new MovDyn(cookedArr1, cookedArr),
+
             ...MicroGetTemplateObject(rawArr1, cookedArr1),
             new StaDyn(templateObj),
 
@@ -290,8 +290,8 @@ describe("templateExpressionTest", function() {
             new StaDyn(addRet2),
 
             // structure call
-            new CalliThisRangeDyn(new Imm(ResultType.Int, 4), [prop, obj, rawArr, cookedArr, templateObj]),
-            new ReturnUndefined()
+            new EcmaCallithisrangedyn(new Imm(ResultType.Int, 4), [prop, obj, rawArr, cookedArr, templateObj]),
+            new EcmaReturnundefined()
         ];
         expect(checkInstructions(insns, expected)).to.be.true;
     });

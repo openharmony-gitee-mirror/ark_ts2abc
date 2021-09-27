@@ -23,7 +23,7 @@ export function creatAstFromSnippet(snippet: string): ts.SourceFile {
 
 /** It would be tricky here to use relative path, so please use an absolute path instead.
  *  For how to use this function, please refer to example_asthelper.ts
- */ 
+ */
 export function creatAstFromFile(fileName: string): ts.SourceFile {
     let sourceFile = ts.createSourceFile(fileName, readFileSync(fileName).toString(), ts.ScriptTarget.ES2015, true);
     return sourceFile;

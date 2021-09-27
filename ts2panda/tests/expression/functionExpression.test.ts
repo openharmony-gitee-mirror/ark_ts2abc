@@ -14,42 +14,41 @@
  */
 
 import { expect } from 'chai';
-import { DiagnosticCode } from '../../src/diagnostic';
+import { DiagnosticCode, DiagnosticError } from '../../src/diagnostic';
 import {
-    Add2Dyn,
-    AsyncFunctionAwaitUncaughtDyn,
-    AsyncFunctionEnterDyn,
-    AsyncFunctionRejectDyn,
-    AsyncFunctionResolveDyn,
-    Call0Dyn,
-    CreateGeneratorObjDyn,
-    CreateIterResultObjectDyn,
-    DefineAsyncFuncDyn,
-    DefinefuncDyn,
-    DefineGeneratorfuncDyn,
-    DefineNCFuncDyn,
-    EqDyn,
-    GetResumeModeDyn,
+    EcmaAdd2dyn,
+    EcmaAsyncfunctionawaituncaught,
+    EcmaAsyncfunctionenter,
+    EcmaAsyncfunctionreject,
+    EcmaAsyncfunctionresolve,
+    EcmaCallarg0dyn,
+    EcmaCreategeneratorobj,
+    EcmaCreateiterresultobj,
+    EcmaDefinefuncdyn,
+    EcmaDefinegeneratorfunc,
+    EcmaDefinencfuncdyn,
+    EcmaEqdyn,
+    EcmaGetresumemode,
+    EcmaLdlexenvdyn,
+    EcmaResumegenerator,
+    EcmaReturnundefined,
+    EcmaSuspendgenerator,
+    EcmaThrowdyn,
     Imm,
     Jeqz,
     Label,
     LdaDyn,
     LdaiDyn,
-    LdLexEnv,
     ResultType,
-    ResumeGeneratorDyn,
     ReturnDyn,
-    ReturnUndefined,
     StaDyn,
-    SuspendGeneratorDyn,
-    ThrowDyn,
     VReg
 } from "../../src/irnodes";
 import { CacheExpander } from '../../src/pass/cacheExpander';
 import { checkInstructions, compileAllSnippet } from "../utils/base";
 
-describe("compileFunctionExpression", function() {
-    it("FunctionExpression with name", function() {
+describe("compileFunctionExpression", function () {
+    it("FunctionExpression with name", function () {
         let source: string = `
         var a = function test() {
             test();
@@ -59,17 +58,17 @@ describe("compileFunctionExpression", function() {
         let pandaGens = compileAllSnippet(source, passes);
 
         let expected_func = [
-            new LdLexEnv(),
+            new EcmaLdlexenvdyn(),
             new StaDyn(new VReg()),
             new LdaDyn(new VReg()),
             new StaDyn(new VReg()),
-            new Call0Dyn(new VReg()),
-            new ReturnUndefined()
+            new EcmaCallarg0dyn(new VReg()),
+            new EcmaReturnundefined()
         ];
 
         let checkCount = 0;
         pandaGens.forEach((pg) => {
-            if (pg.internalName == "func_test_1") {
+            if (pg.internalName == "test") {
                 expect(checkInstructions(pg.getInsns(), expected_func), "check func insns").to.be.true;
                 checkCount++;
             }
@@ -78,7 +77,7 @@ describe("compileFunctionExpression", function() {
         expect(checkCount).to.equals(1);
     });
 
-    it("FunctionExpression without name", function() {
+    it("FunctionExpression without name", function () {
         let source: string = `
         var a = function () {
         }`;
@@ -87,15 +86,15 @@ describe("compileFunctionExpression", function() {
 
         let checkCount = 0;
         pandaGens.forEach((pg) => {
-            if (pg.internalName == "func_a_1") {
+            if (pg.internalName == "a") {
                 checkCount++;
             }
 
             if (pg.internalName == "func_main_0") {
 
                 pg.getInsns().forEach((insns) => {
-                    if (insns instanceof DefinefuncDyn) {
-                        expect(insns.operands[0]).to.equal('func_a_1');
+                    if (insns instanceof EcmaDefinefuncdyn) {
+                        expect(insns.operands[0]).to.equal('a');
                         checkCount++;
                     }
                 });
@@ -105,7 +104,7 @@ describe("compileFunctionExpression", function() {
         expect(checkCount).to.equals(2);
     });
 
-    it("FunctionExpression without name in binary expression", function() {
+    it("FunctionExpression without name in binary expression", function () {
         let source: string = `
         var a;
         a = function () {
@@ -115,15 +114,15 @@ describe("compileFunctionExpression", function() {
 
         let checkCount = 0;
         pandaGens.forEach((pg) => {
-            if (pg.internalName == "func_a_1") {
+            if (pg.internalName == "a") {
                 checkCount++;
             }
 
             if (pg.internalName == "func_main_0") {
 
                 pg.getInsns().forEach((insns) => {
-                    if (insns instanceof DefinefuncDyn) {
-                        expect(insns.operands[0]).to.equal('func_a_1');
+                    if (insns instanceof EcmaDefinefuncdyn) {
+                        expect(insns.operands[0]).to.equal('a');
                         checkCount++;
                     }
                 });
@@ -134,7 +133,7 @@ describe("compileFunctionExpression", function() {
     });
 
 
-    it("ArrowFunction", function() {
+    it("ArrowFunction", function () {
         let source: string = `
         var a = ()=> {
         }`;
@@ -143,15 +142,15 @@ describe("compileFunctionExpression", function() {
         let checkCount = 0;
 
         pandaGens.forEach((pg) => {
-            if (pg.internalName == "func_a_1") {
+            if (pg.internalName == "a") {
                 checkCount++;
             }
 
             if (pg.internalName == "func_main_0") {
 
                 pg.getInsns().forEach((insns) => {
-                    if (insns instanceof DefineNCFuncDyn) {
-                        expect(insns.operands[0]).to.equal('func_a_1');
+                    if (insns instanceof EcmaDefinencfuncdyn) {
+                        expect(insns.operands[0]).to.equal('a');
                         checkCount++;
                     }
                 });
@@ -161,7 +160,7 @@ describe("compileFunctionExpression", function() {
         expect(checkCount).to.equals(2);
     });
 
-    it("ArrowFunctionWithExpression", function() {
+    it("ArrowFunctionWithExpression", function () {
         let source: string = `
         var p = (x, y) => x + y;`;
 
@@ -172,14 +171,14 @@ describe("compileFunctionExpression", function() {
             new LdaDyn(new VReg()),
             new StaDyn(new VReg()),
             new LdaDyn(new VReg()),
-            new Add2Dyn(new VReg()),
+            new EcmaAdd2dyn(new VReg()),
             new StaDyn(new VReg()),
             new LdaDyn(new VReg()),
             new ReturnDyn()
         ];
 
         pandaGens.forEach((pg) => {
-            if (pg.internalName == "func_p_1") {
+            if (pg.internalName == "p") {
                 expect(checkInstructions(pg.getInsns(), expected_func), "check arrow func insns").to.be.true;
                 checkCount++;
             }
@@ -187,8 +186,8 @@ describe("compileFunctionExpression", function() {
             if (pg.internalName == "func_main_0") {
 
                 pg.getInsns().forEach((insns) => {
-                    if (insns instanceof DefineNCFuncDyn) {
-                        expect(insns.operands[0]).to.equal('func_p_1');
+                    if (insns instanceof EcmaDefinencfuncdyn) {
+                        expect(insns.operands[0]).to.equal('p');
                         checkCount++;
                     }
                 });
@@ -198,7 +197,7 @@ describe("compileFunctionExpression", function() {
         expect(checkCount).to.equals(2);
     });
 
-    it("ArrowFunctionSyntaxError", function() {
+    it("ArrowFunctionSyntaxError", function () {
         let source: string = `
             var af = x
                 => {};`;
@@ -206,13 +205,14 @@ describe("compileFunctionExpression", function() {
         try {
             compileAllSnippet(source);
         } catch (err) {
-            expect(err.code).to.equal(DiagnosticCode.Line_terminator_not_permitted_before_arrow);
+            expect(err instanceof DiagnosticError).to.be.true;
+            expect((<DiagnosticError>err).code).to.equal(DiagnosticCode.Line_terminator_not_permitted_before_arrow);
             errorThrown = true;
         }
         expect(errorThrown).to.be.true;
     });
 
-    it("GeneratorFunction", function() {
+    it("GeneratorFunction", function () {
         let source: string = `
             function* a() {
                 yield 1;
@@ -224,70 +224,70 @@ describe("compileFunctionExpression", function() {
         let notThrowLabel1 = new Label();
 
         let expected_func = [
-            new CreateGeneratorObjDyn(new VReg()),
+            new EcmaCreategeneratorobj(new VReg()),
             new StaDyn(new VReg()),
-            new SuspendGeneratorDyn(new VReg(), new VReg()),
-            new ResumeGeneratorDyn(new VReg()),
+            new EcmaSuspendgenerator(new VReg(), new VReg()),
+            new EcmaResumegenerator(new VReg()),
             new StaDyn(new VReg()),
-            new GetResumeModeDyn(new VReg()),
+            new EcmaGetresumemode(new VReg()),
             new StaDyn(new VReg()),
 
             new LdaiDyn(new Imm(ResultType.Int, 0)),
-            new EqDyn(new VReg()),
+            new EcmaEqdyn(new VReg()),
             new Jeqz(notRetLabel0),
             new LdaDyn(new VReg()),
             new ReturnDyn(),
 
             notRetLabel0,
             new LdaiDyn(new Imm(ResultType.Int, 1)),
-            new EqDyn(new VReg()),
+            new EcmaEqdyn(new VReg()),
             new Jeqz(notThrowLabel0),
             new LdaDyn(new VReg()),
-            new ThrowDyn(),
+            new EcmaThrowdyn(),
 
             notThrowLabel0,
             new LdaDyn(new VReg()),
             new LdaiDyn(new Imm(ResultType.Int, 1)),
             new StaDyn(new VReg()),
-            new CreateIterResultObjectDyn(new VReg(), new VReg()),
+            new EcmaCreateiterresultobj(new VReg(), new VReg()),
             new StaDyn(new VReg()),
-            new SuspendGeneratorDyn(new VReg(), new VReg()),
-            new ResumeGeneratorDyn(new VReg()),
+            new EcmaSuspendgenerator(new VReg(), new VReg()),
+            new EcmaResumegenerator(new VReg()),
             new StaDyn(new VReg()),
-            new GetResumeModeDyn(new VReg()),
+            new EcmaGetresumemode(new VReg()),
             new StaDyn(new VReg()),
 
             new LdaiDyn(new Imm(ResultType.Int, 0)),
-            new EqDyn(new VReg()),
+            new EcmaEqdyn(new VReg()),
             new Jeqz(notRetLabel1),
             new LdaDyn(new VReg()),
             new ReturnDyn(),
 
             notRetLabel1,
             new LdaiDyn(new Imm(ResultType.Int, 1)),
-            new EqDyn(new VReg()),
+            new EcmaEqdyn(new VReg()),
             new Jeqz(notThrowLabel1),
             new LdaDyn(new VReg()),
-            new ThrowDyn(),
+            new EcmaThrowdyn(),
 
             notThrowLabel1,
             new LdaDyn(new VReg()),
-            new ReturnUndefined()
+            new EcmaReturnundefined()
         ];
 
         let pandaGens = compileAllSnippet(source);
         let checkCount = 0;
 
         pandaGens.forEach((pg) => {
-            if (pg.internalName == "func_a_1") {
+            if (pg.internalName == "a") {
                 expect(checkInstructions(pg.getInsns(), expected_func), "check generator func insns").to.be.true;
                 checkCount++;
             }
 
             if (pg.internalName == "func_main_0") {
                 pg.getInsns().forEach((insns) => {
-                    if (insns instanceof DefineGeneratorfuncDyn) {
-                        expect(insns.operands[0]).to.equal('func_a_1');
+                    if (insns instanceof EcmaDefinegeneratorfunc) {
+                        expect(insns.operands[0]).to.equal('a');
                         checkCount++;
                     }
                 });
@@ -297,7 +297,7 @@ describe("compileFunctionExpression", function() {
         expect(checkCount).to.equals(2);
     });
 
-    it("AsyncFunction", function() {
+    it("AsyncFunction", function () {
         let source: string = `
             async function a() {
                 await 1;
@@ -308,30 +308,30 @@ describe("compileFunctionExpression", function() {
         let nextLabel = new Label();
 
         let expected_func = [
-            new AsyncFunctionEnterDyn(),
+            new EcmaAsyncfunctionenter(),
             new StaDyn(new VReg()),
             beginLabel,
             new LdaiDyn(new Imm(ResultType.Int, 1)),
             new StaDyn(new VReg()),
-            new AsyncFunctionAwaitUncaughtDyn(new VReg(), new VReg()),
+            new EcmaAsyncfunctionawaituncaught(new VReg(), new VReg()),
             new StaDyn(new VReg()),
-            new SuspendGeneratorDyn(new VReg(), new VReg()),
-            new ResumeGeneratorDyn(new VReg()),
+            new EcmaSuspendgenerator(new VReg(), new VReg()),
+            new EcmaResumegenerator(new VReg()),
             new StaDyn(new VReg()),
-            new GetResumeModeDyn(new VReg()),
+            new EcmaGetresumemode(new VReg()),
             new StaDyn(new VReg()),
             new LdaiDyn(new Imm(ResultType.Int, 1)),
-            new EqDyn(new VReg()),
+            new EcmaEqdyn(new VReg()),
             new Jeqz(nextLabel),
             new LdaDyn(new VReg()),
-            new ThrowDyn(),
+            new EcmaThrowdyn(),
             nextLabel,
             new LdaDyn(new VReg()),
-            new AsyncFunctionResolveDyn(new VReg(), new VReg(), new VReg()),
+            new EcmaAsyncfunctionresolve(new VReg(), new VReg(), new VReg()),
             new ReturnDyn(),
             endLabel,
             new StaDyn(new VReg()),
-            new AsyncFunctionRejectDyn(new VReg(), new VReg(), new VReg()),
+            new EcmaAsyncfunctionreject(new VReg(), new VReg(), new VReg()),
             new ReturnDyn(),
         ];
 
@@ -339,31 +339,32 @@ describe("compileFunctionExpression", function() {
         let checkCount = 0;
 
         pandaGens.forEach((pg) => {
-            if (pg.internalName == "func_a_1") {
+            if (pg.internalName == "a") {
                 expect(checkInstructions(pg.getInsns(), expected_func), "check async func insns").to.be.true;
                 checkCount++;
             }
 
             if (pg.internalName == "func_main_0") {
                 pg.getInsns().forEach((insns) => {
-                    if (insns instanceof DefineAsyncFuncDyn) {
-                        expect(insns.operands[0]).to.equal('func_a_1');
+                    if (insns instanceof EcmaDefinencfuncdyn) {
+                        expect(insns.operands[0]).to.equal('a');
                         checkCount++;
                     }
                 });
             }
         });
 
-        expect(checkCount).to.equals(2);
+        expect(checkCount).to.equals(1);
     });
 
-    it("FunctionWithRestParameterSyntaxError", function() {
+    it("FunctionWithRestParameterSyntaxError", function () {
         let source: string = `function func(...a,)`;
         let errorThrown = false;
         try {
             compileAllSnippet(source);
         } catch (err) {
-            expect(err.code).to.equal(DiagnosticCode.A_rest_parameter_or_binding_pattern_may_not_have_a_trailing_comma);
+            expect(err instanceof DiagnosticError).to.be.true;
+            expect((<DiagnosticError>err).code).to.equal(DiagnosticCode.A_rest_parameter_or_binding_pattern_may_not_have_a_trailing_comma);
             errorThrown = true;
         }
         expect(errorThrown).to.be.true;
