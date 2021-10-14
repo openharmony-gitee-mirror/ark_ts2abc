@@ -38,6 +38,8 @@ def parse_args():
                         help='path to node-modules exetuable')
     parser.add_argument("--debug", action='store_true',
                         help='whether add debuginfo')
+    parser.add_argument("--module", action='store_true',
+                        help='whether is module')
     arguments = parser.parse_args()
     return arguments
 
@@ -80,6 +82,8 @@ def gen_abc_info(input_arguments):
 
     if input_arguments.debug:
         cmd.insert(3, '--debug')
+    if input_arguments.module:
+        cmd.insert(4, '-m')
     run_command(cmd, path)
 
 
