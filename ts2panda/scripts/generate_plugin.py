@@ -117,7 +117,7 @@ def gen_java_method(input_arguments):
                     output.write("    private static String getJsCode%s(){%s"
                             % (block_index, os.linesep))
                     output.write("        return%s" % os.linesep)
-                if (index % single_block_len == single_block_len - 1 or index == total_len -1):
+                if (index % single_block_len == single_block_len - 1 or index == total_len - 1):
                     output.write("        \"%s\";%s" % (line, os.linesep))
                     output.write("    }%s" % os.linesep)
                 else:
