@@ -314,3 +314,15 @@ group("ark_ts2abc_build") {
     ]
   }
 }
+
+ohos_copy("copy_ts2abc_tests") {
+  sources = [ "${ts2abc_root}/tests" ]
+  deps = [ ":npm_run_build" ]
+
+  outputs = [ target_out_dir + "/tests" ]
+  module_install_name = ""
+}
+
+group("ts2abc_unittests") {
+  deps = [ "tests:ts2abc_tests(${buildtool_linux})" ]
+}

@@ -18,8 +18,13 @@ import {
 } from 'chai';
 import 'mocha';
 import {
-    And2Dyn,
-    EqDyn,
+    EcmaAnd2dyn,
+    EcmaEqdyn,
+    EcmaIsfalse,
+    EcmaIstrue,
+    EcmaReturnundefined,
+    EcmaStlettoglobalrecord,
+    EcmaTryldglobalbyname,
     Imm,
     Jeqz,
     Jlez,
@@ -27,18 +32,14 @@ import {
     Label,
     LdaDyn,
     LdaiDyn,
-    NotEqDyn,
     ResultType,
-    ReturnDyn,
     StaDyn,
-    VReg,
-    Toboolean,
-    ReturnUndefined,
-} from "../src/irnodes";
-import { checkInstructions, compileMainSnippet } from "./utils/base";
+    VReg
+} from "../../src/irnodes";
+import { checkInstructions, compileMainSnippet } from "../utils/base";
 
-describe("IfConditionTest", function() {
-    it('ifConditionEmpty', function() {
+describe("IfConditionTest", function () {
+    it('ifConditionEmpty', function () {
         let insns = compileMainSnippet("let s = 1;\n" +
             "if (s > 2) {}");
         let jumps = insns.filter(item => item instanceof Jeqz);
@@ -50,7 +51,7 @@ describe("IfConditionTest", function() {
         expect(targetLabel).to.equal(insns[insns.length - 2]);
     });
 
-    it('ifConditionWithThenStatement', function() {
+    it('ifConditionWithThenStatement', function () {
         let insns = compileMainSnippet("let a = 2;\n" +
             "if (a > 4) {\n" +
             "  a = 3;\n" +
@@ -64,7 +65,7 @@ describe("IfConditionTest", function() {
         expect(targetLabel).to.equal(insns[insns.length - 2]);
     });
 
-    it('ifConditionWithThenStatementAndElseStatement', function() {
+    it('ifConditionWithThenStatementAndElseStatement', function () {
         let insns = compileMainSnippet("let a = 5;\n" +
             "if (a > 3) {\n" +
             "  a = 2;\n" +
@@ -87,25 +88,21 @@ describe("IfConditionTest", function() {
         expect(endIfLabel).to.equal(insns[insns.length - 2]);
     });
 
-    it("if (a & b)", function() {
+    it("if (a & b)", function () {
         let insns = compileMainSnippet(`
       let a = 1;
       let b = 2;
       if (a & b) {
       }
       `);
-        let a = new VReg();
-        let b = new VReg();
         let lhs = new VReg();
-        let trueReg = new VReg();
         let endIfLabel = new Label();
         let expected = [
-            new LdaDyn(a),
+            new EcmaTryldglobalbyname('a'),
             new StaDyn(lhs),
-            new LdaDyn(b),
-            new And2Dyn(lhs),
-            new Toboolean(),
-            new EqDyn(trueReg),
+            new EcmaTryldglobalbyname('b'),
+            new EcmaAnd2dyn(lhs),
+            new EcmaIstrue(),
             new Jeqz(endIfLabel),
             endIfLabel,
         ];
@@ -113,22 +110,21 @@ describe("IfConditionTest", function() {
         expect(checkInstructions(insns, expected)).to.be.true
     });
 
-    it("if (a = b)", function() {
+    it("if (a == b)", function () {
         let insns = compileMainSnippet(`
       let a = 1;
       let b = 2;
-      if (a = b) {
+      if (a == b) {
       }
       `);
         let a = new VReg();
-        let b = new VReg();
         let trueReg = new VReg();
         let endIfLabel = new Label();
         let expected = [
-            new LdaDyn(b),
+            new EcmaTryldglobalbyname('a'),
             new StaDyn(a),
-            new Toboolean(),
-            new EqDyn(trueReg),
+            new EcmaTryldglobalbyname('b'),
+            new EcmaEqdyn(trueReg),
             new Jeqz(endIfLabel),
             endIfLabel,
         ];
@@ -136,25 +132,22 @@ describe("IfConditionTest", function() {
         expect(checkInstructions(insns, expected)).to.be.true;
     });
 
-    it("let a = true ? 5 : 0;", function() {
+    it("let a = true ? 5 : 0;", function () {
         let insns = compileMainSnippet(`let a = true ? 5 : 0;`);
 
         insns = insns.slice(0, insns.length - 1);
-        let trueReg = new VReg();
-        let tempReg = new VReg();
         let expectedElseLabel = new Label();
         let expectedEndLabel = new Label();
         let expected = [
             new LdaDyn(new VReg()),
-            new Toboolean(),
-            new EqDyn(trueReg),
+            new EcmaIstrue(),
             new Jeqz(expectedElseLabel),
             new LdaiDyn(new Imm(ResultType.Int, 5)),
             new Jmp(expectedEndLabel),
             expectedElseLabel,
             new LdaiDyn(new Imm(ResultType.Int, 0)),
             expectedEndLabel,
-            new StaDyn(tempReg)
+            new EcmaStlettoglobalrecord('a'),
         ];
         expect(checkInstructions(insns, expected)).to.be.true;
 
@@ -165,42 +158,36 @@ describe("IfConditionTest", function() {
         expect(labels.length).to.equal(2);
     });
 
-    it("if (true && 5) {}", function() {
+    it("if (true && 5) {}", function () {
         let insns = compileMainSnippet("if (true && 5) {}");
-        let trueReg = new VReg();
         let ifFalseLabel = new Label();
         let expected = [
             new LdaDyn(new VReg()),
-            new Toboolean(),
-            new EqDyn(trueReg),
+            new EcmaIstrue(),
             new Jeqz(ifFalseLabel),
             new LdaiDyn(new Imm(ResultType.Int, 5)),
-            new Toboolean(),
-            new EqDyn(trueReg),
+            new EcmaIstrue(),
             new Jeqz(ifFalseLabel),
             ifFalseLabel,
-            new ReturnUndefined()
+            new EcmaReturnundefined()
         ]
         expect(checkInstructions(insns, expected)).to.be.true;
     });
 
-    it("if (false || 5) {}", function() {
+    it("if (false || 5) {}", function () {
         let insns = compileMainSnippet("if (false || 5) {}");
-        let falseReg = new VReg();
         let ifFalseLabel = new Label();
         let endLabel = new Label();
         let expected = [
             new LdaDyn(new VReg()),
-            new Toboolean(),
-            new EqDyn(falseReg),
+            new EcmaIsfalse(),
             new Jeqz(endLabel),
             new LdaiDyn(new Imm(ResultType.Int, 5)),
-            new Toboolean(),
-            new NotEqDyn(falseReg),
+            new EcmaIstrue(),
             new Jeqz(ifFalseLabel),
             endLabel,
             ifFalseLabel,
-            new ReturnUndefined()
+            new EcmaReturnundefined()
         ]
         expect(checkInstructions(insns, expected)).to.be.true;
     });

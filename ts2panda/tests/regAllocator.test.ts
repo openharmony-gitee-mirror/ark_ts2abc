@@ -17,21 +17,20 @@ import { expect } from 'chai';
 import 'mocha';
 import * as ts from "typescript";
 import {
-    BuiltinAcc,
-    BuiltinR2i,
     CallRange,
+    EcmaCallirangedyn,
+    EcmaReturnundefined,
+    EcmaStlettoglobalrecord,
+    EcmaTryldglobalbyname,
     Imm,
     IRNode,
-    LdaDyn,
-    MovDyn,
+    LdaiDyn,
     ResultType,
-    ReturnUndefined,
     StaDyn,
     VReg
 } from "../src/irnodes";
 import { PandaGen } from "../src/pandagen";
 import { CacheExpander } from "../src/pass/cacheExpander";
-import { IntrinsicVariantExpander } from "../src/pass/intrinsicVariantExpander";
 import { RegAlloc } from "../src/regAllocator";
 import { basicChecker, checkInstructions, compileAllSnippet } from "./utils/base";
 
@@ -56,8 +55,8 @@ function checkRegisterNumber(left: IRNode, right: IRNode): boolean {
     }
     return true;
 }
-describe("RegAllocator", function() {
-    it("make spill for Src register", function() {
+describe("RegAllocator", function () {
+    it("make spill for Src register", function () {
         let string: string = "";
         for (let i = 0; i < 256; ++i) {
             string += "let a" + i + " = " + i + ";";
@@ -66,31 +65,24 @@ describe("RegAllocator", function() {
 
         let pgs = compileAllSnippet(string, [new CacheExpander(), new RegAlloc()]);
         let insns = pgs[0].getInsns();
-        let v260 = new VReg();
-        v260.num = 260;
-        let v259 = new VReg();
-        v259.num = 259;
-        let v258 = new VReg();
-        v258.num = 258;
-        let v0 = new VReg();
-        v0.num = 0;
 
         let expected: IRNode[] = [
-            new MovDyn(v260, v0),
-            new StaDyn(v0),
-            new MovDyn(v258, v0),
-            new MovDyn(v0, v260),
+            new LdaiDyn(new Imm(ResultType.Int, 252)),
+            new EcmaStlettoglobalrecord('a252'),
+            new LdaiDyn(new Imm(ResultType.Int, 253)),
+            new EcmaStlettoglobalrecord('a253'),
+            new LdaiDyn(new Imm(ResultType.Int, 254)),
+            new EcmaStlettoglobalrecord('a254'),
+            new LdaiDyn(new Imm(ResultType.Int, 255)),
+            new EcmaStlettoglobalrecord('a255'),
+            new EcmaTryldglobalbyname('a255'),
+            new EcmaReturnundefined()
+        ]
 
-            new MovDyn(v260, v0),
-            new MovDyn(v0, v258),
-            new LdaDyn(v0),
-            new MovDyn(v0, v260),
-            new ReturnUndefined()
-        ];
-        expect(checkInstructions(insns.slice(insns.length - 9), expected, checkRegisterNumber)).to.be.true;
+        expect(checkInstructions(insns.slice(insns.length - 10), expected, checkRegisterNumber)).to.be.true;
     });
 
-    it("make spill for SrcDst register", function() {
+    it("make spill for SrcDst register", function () {
         /* the only possible instruction whose operand register type could be SrcDstVReg is INCI,
          * but we do not use it at all by now
          */
@@ -107,40 +99,39 @@ describe("RegAllocator", function() {
             string += "let a" + i + " = " + i + ";";
         }
         string += "call(a252, a253, a254, a255);";
-        let pgs = compileAllSnippet(string, [new CacheExpander(), new IntrinsicVariantExpander(), new RegAlloc()]);
+        let pgs = compileAllSnippet(string, [new CacheExpander(), new RegAlloc()]);
         let insns = pgs[0].getInsns();
         let v = [];
-        for (let i = 0; i < 5; ++i) {
-            v[i] = new VReg();
-            v[i].num = i;
-        }
-        for (let i = 259; i <= 269; ++i) {
+        for (let i = 0; i < 8; ++i) {
             v[i] = new VReg();
             v[i].num = i;
         }
         let expected = [
-            new MovDyn(v[265], v[0]),
-            new MovDyn(v[0], v[259]),
-            new MovDyn(v[266], v[1]),
-            new MovDyn(v[1], v[260]),
-            new MovDyn(v[267], v[2]),
-            new MovDyn(v[2], v[261]),
-            new MovDyn(v[268], v[3]),
-            new MovDyn(v[3], v[262]),
-            new MovDyn(v[269], v[4]),
-            new MovDyn(v[4], v[263]),
-            new BuiltinR2i(new Imm(ResultType.Int, 3), new Imm(ResultType.Int, 4), v.slice(0, 5)),
-            new MovDyn(v[0], v[265]),
-            new MovDyn(v[1], v[266]),
-            new MovDyn(v[2], v[267]),
-            new MovDyn(v[3], v[268]),
-            new MovDyn(v[4], v[269]),
-            new BuiltinAcc(new Imm(ResultType.Int, 23)) // ReturnUndefined
+            new LdaiDyn(new Imm(ResultType.Int, 252)),
+            new EcmaStlettoglobalrecord('a252'),
+            new LdaiDyn(new Imm(ResultType.Int, 253)),
+            new EcmaStlettoglobalrecord('a253'),
+            new LdaiDyn(new Imm(ResultType.Int, 254)),
+            new EcmaStlettoglobalrecord('a254'),
+            new LdaiDyn(new Imm(ResultType.Int, 255)),
+            new EcmaStlettoglobalrecord('a255'),
+            new EcmaTryldglobalbyname('call'),
+            new StaDyn(v[3]),
+            new EcmaTryldglobalbyname('a252'),
+            new StaDyn(v[4]),
+            new EcmaTryldglobalbyname('a253'),
+            new StaDyn(v[5]),
+            new EcmaTryldglobalbyname('a254'),
+            new StaDyn(v[6]),
+            new EcmaTryldglobalbyname('a255'),
+            new StaDyn(v[7]),
+            new EcmaCallirangedyn(new Imm(ResultType.Int, 4), [v[3],v[4],v[5],v[6],v[7]]),
+            new EcmaReturnundefined(),
         ];
-        expect(checkInstructions(insns.slice(insns.length - 17), expected, checkRegisterNumber)).to.be.true;
+        expect(checkInstructions(insns.slice(insns.length - 20), expected, checkRegisterNumber)).to.be.true;
     });
 
-    it("VReg sequence of CalliDynRange is not continuous", function() {
+    it("VReg sequence of CalliDynRange is not continuous", function () {
         let pandaGen = new PandaGen('', 0);
 
         let para1 = pandaGen.getTemp();
@@ -163,7 +154,7 @@ describe("RegAllocator", function() {
         expect(true).to.be.false;
     });
 
-    it("VReg sequence of DynRange is not continuous", function() {
+    it("VReg sequence of DynRange is not continuous", function () {
         let pandaGen = new PandaGen('', 0);
 
         let para1 = pandaGen.getTemp();

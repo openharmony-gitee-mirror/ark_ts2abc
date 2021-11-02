@@ -18,65 +18,65 @@ import {
 } from 'chai';
 import 'mocha';
 import {
-    Call0Dyn,
-    Call1Dyn,
-    CalliThisRangeDyn,
-    CallSpread,
-    CreateArrayWithBuffer,
-    CreateEmptyArray,
+    EcmaCallarg0dyn,
+    EcmaCallarg1dyn,
+    EcmaCallithisrangedyn,
+    EcmaCallspreaddyn,
+    EcmaCreatearraywithbuffer,
+    EcmaCreateemptyarray,
+    EcmaLdobjbyname,
+    EcmaLdobjbyvalue,
+    EcmaReturnundefined,
+    EcmaStarrayspread,
+    EcmaStconsttoglobalrecord,
+    EcmaStlettoglobalrecord,
+    EcmaTryldglobalbyname,
     Imm,
     LdaDyn,
     LdaiDyn,
-    LdObjByName,
-    LdObjByValue,
     ResultType,
-    ReturnUndefined,
     StaDyn,
-    StArraySpread,
-    TryLdGlobalByName,
     VReg
 } from "../../src/irnodes";
 import { checkInstructions, compileMainSnippet } from "../utils/base";
 
-describe("CallTest", function() {
-    it("no arg call of a global standalone function", function() {
+describe("CallTest", function () {
+    it("no arg call of a global standalone function", function () {
         let insns = compileMainSnippet(`
       foo();
       `);
         let arg0 = new VReg();
         let expected = [
-            new TryLdGlobalByName("foo"),
+            new EcmaTryldglobalbyname("foo"),
             new StaDyn(arg0),
-            new Call0Dyn(arg0),
+            new EcmaCallarg0dyn(arg0),
 
-            new ReturnUndefined()
+            new EcmaReturnundefined()
         ];
         expect(checkInstructions(insns, expected)).to.be.true;
     });
 
-    it("one arg call of a global standalone function", function() {
+    it("one arg call of a global standalone function", function () {
         let insns = compileMainSnippet(`
       let i = 5;
       foo(i);
       `);
-        let i = new VReg();
         let arg0 = new VReg();
         let arg2 = new VReg();
         let expected = [
             new LdaiDyn(new Imm(ResultType.Int, 5)),
-            new StaDyn(i),
-            new TryLdGlobalByName("foo"),
+            new EcmaStlettoglobalrecord('i'),
+            new EcmaTryldglobalbyname("foo"),
             new StaDyn(arg0),
-            new LdaDyn(i),
+            new EcmaTryldglobalbyname('i'),
             new StaDyn(arg2),
-            new Call1Dyn(arg0, arg2),
-
-            new ReturnUndefined()
+            new EcmaCallarg1dyn(arg0, arg2),
+            new EcmaReturnundefined()
         ];
         expect(checkInstructions(insns, expected)).to.be.true;
     });
 
-    it("call method", function() {
+    it("call method", function () {
         let insns = compileMainSnippet(`
       Foo.method();
       `);
@@ -84,18 +84,18 @@ describe("CallTest", function() {
         let arg0 = new VReg();
         let arg1 = new VReg();
         let expected = [
-            new TryLdGlobalByName("Foo"),
+            new EcmaTryldglobalbyname("Foo"),
             new StaDyn(arg0),
-            new LdObjByName("method", arg0),
+            new EcmaLdobjbyname("method", arg0),
             new StaDyn(arg1),
-            new CalliThisRangeDyn(new Imm(ResultType.Int, 1), [arg1, obj]),
+            new EcmaCallithisrangedyn(new Imm(ResultType.Int, 1), [arg1, obj]),
 
-            new ReturnUndefined()
+            new EcmaReturnundefined()
         ];
         expect(checkInstructions(insns, expected)).to.be.true;
     });
 
-    it("spread element call of a global standalone function", function() {
+    it("spread element call of a global standalone function", function () {
         let insns = compileMainSnippet(`
        const args = [1, 2];
        myFunction(...args);
@@ -104,34 +104,32 @@ describe("CallTest", function() {
         let globalEnv = new VReg();
         let lengthReg = new VReg();
         let arrayInstance = new VReg();
-        let objReg = new VReg();
 
         let expected = [
-            new CreateArrayWithBuffer(new Imm(ResultType.Int, 0)),
+            new EcmaCreatearraywithbuffer(new Imm(ResultType.Int, 0)),
             new StaDyn(arrayInstance),
             new LdaDyn(arrayInstance),
-            new StaDyn(objReg),
+            new EcmaStconsttoglobalrecord('args'),
 
-            new TryLdGlobalByName("myFunction"),
+            new EcmaTryldglobalbyname("myFunction"),
             new StaDyn(arg0),
 
-            new CreateEmptyArray(),
+            new EcmaCreateemptyarray(),
             new StaDyn(arrayInstance),
             new LdaiDyn(new Imm(ResultType.Int, 0)),
             new StaDyn(lengthReg),
-            new LdaDyn(objReg),
-            new StArraySpread(arrayInstance, lengthReg),
+            new EcmaTryldglobalbyname('args'),
+            new EcmaStarrayspread(arrayInstance, lengthReg),
             new StaDyn(lengthReg),
             new LdaDyn(arrayInstance),
 
-            new CallSpread(arg0, globalEnv, arrayInstance),
-
-            new ReturnUndefined()
+            new EcmaCallspreaddyn(arg0, globalEnv, arrayInstance),
+            new EcmaReturnundefined()
         ];
         expect(checkInstructions(insns, expected)).to.be.true;
     });
 
-    it("call by element access", function() {
+    it("call by element access", function () {
         let insns = compileMainSnippet(`
             Foo[method]();
             `);
@@ -140,15 +138,15 @@ describe("CallTest", function() {
         let arg0 = new VReg();
         let arg1 = new VReg();
         let expected = [
-            new TryLdGlobalByName("Foo"),
+            new EcmaTryldglobalbyname("Foo"),
             new StaDyn(arg0),
-            new TryLdGlobalByName("method"),
+            new EcmaTryldglobalbyname("method"),
             new StaDyn(prop),
-            new LdObjByValue(arg0, prop),
+            new EcmaLdobjbyvalue(arg0, prop),
             new StaDyn(arg1),
-            new CalliThisRangeDyn(new Imm(ResultType.Int, 1), [arg1, obj]),
+            new EcmaCallithisrangedyn(new Imm(ResultType.Int, 1), [arg1, obj]),
 
-            new ReturnUndefined()
+            new EcmaReturnundefined()
         ];
         expect(checkInstructions(insns, expected)).to.be.true;
     });

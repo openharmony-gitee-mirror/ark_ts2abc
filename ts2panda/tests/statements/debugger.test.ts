@@ -18,17 +18,17 @@ import {
 } from 'chai';
 import 'mocha';
 import {
-    Debugger,
-    ReturnUndefined
-} from "../src/irnodes";
-import { checkInstructions, compileMainSnippet } from "./utils/base";
+    EcmaDebugger,
+    EcmaReturnundefined
+} from "../../src/irnodes";
+import { checkInstructions, compileMainSnippet } from "../utils/base";
 
-describe("DebuggerTest", function() {
-    it("debugger", function() {
+describe("DebuggerTest", function () {
+    it("debugger", function () {
         let insns = compileMainSnippet("debugger;");
         let expected = [
-            new Debugger(),
-            new ReturnUndefined()
+            new EcmaDebugger(),
+            new EcmaReturnundefined()
         ];
         expect(checkInstructions(insns, expected)).to.be.true;
     });

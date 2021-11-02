@@ -17,24 +17,26 @@ import {
     expect
 } from 'chai';
 import 'mocha';
-import { couldStartTrivia } from 'typescript';
+import { DiagnosticCode, DiagnosticError } from '../../src/diagnostic';
 import {
-    CreateEmptyObject,
-    GetNextPropName,
-    GetPropertiesIterator,
+    EcmaCreateemptyobject,
+    EcmaGetnextpropname,
+    EcmaGetpropiterator,
+    EcmaReturnundefined,
+    EcmaStrictnoteqdyn,
+    EcmaTryldglobalbyname,
+    EcmaTrystglobalbyname,
     Jeqz,
     Jmp,
     Label,
     LdaDyn,
-    ReturnUndefined,
     StaDyn,
-    StrictNotEqDyn,
     VReg
 } from "../../src/irnodes";
 import { checkInstructions, compileMainSnippet } from "../utils/base";
 
-describe("forInLoopTest", function() {
-    it("forInLoopwithEmptyObject", function() {
+describe("forInLoopTest", function () {
+    it("forInLoopwithEmptyObject", function () {
         let insns = compileMainSnippet("for (let prop in {}) {}");
         let prop = new VReg();
         let temp = new VReg();
@@ -45,22 +47,22 @@ describe("forInLoopTest", function() {
         let loopStartLabel = new Label();
         let loopEndLabel = new Label();
         let expected = [
-            new CreateEmptyObject(),
+            new EcmaCreateemptyobject(),
             new StaDyn(objInstance),
-            new GetPropertiesIterator(),
+            new EcmaGetpropiterator(),
             new StaDyn(iterReg),
 
             loopStartLabel,
-            new GetNextPropName(iterReg),
+            new EcmaGetnextpropname(iterReg),
             new StaDyn(rhs),
-            new StrictNotEqDyn(temp),
+            new EcmaStrictnoteqdyn(temp),
             new Jeqz(loopEndLabel),
             new LdaDyn(rhs),
             new StaDyn(prop),
             new Jmp(loopStartLabel),
 
             loopEndLabel,
-            new ReturnUndefined()
+            new EcmaReturnundefined()
         ];
         expect(checkInstructions(insns, expected)).to.be.true;
 
@@ -69,7 +71,7 @@ describe("forInLoopTest", function() {
         expect(jumps.length).to.equal(2);
     });
 
-    it("forInLoopWithExpressionAsLoopVariable", function() {
+    it("forInLoopWithExpressionAsLoopVariable", function () {
         let insns = compileMainSnippet(`
       let prop;
       let obj;
@@ -77,31 +79,29 @@ describe("forInLoopTest", function() {
       }
       `);
         let temp = new VReg();
-        let prop = new VReg();
-        let obj = new VReg();
         let iterReg = new VReg();
         let rhs = new VReg();
 
         let loopStartLabel = new Label();
         let loopEndLabel = new Label();
         let expected = [
-            new LdaDyn(obj),
-            new GetPropertiesIterator(),
+            new EcmaTryldglobalbyname('obj'),
+            new EcmaGetpropiterator(),
             new StaDyn(iterReg),
 
             loopStartLabel,
-            new GetNextPropName(iterReg),
+            new EcmaGetnextpropname(iterReg),
             new StaDyn(rhs),
-            new StrictNotEqDyn(temp),
+            new EcmaStrictnoteqdyn(temp),
             new Jeqz(loopEndLabel),
             new LdaDyn(rhs),
-            new StaDyn(prop),
+            new EcmaTrystglobalbyname('prop'),
             new Jmp(loopStartLabel),
 
             loopEndLabel,
         ];
 
-        insns = insns.slice(4, insns.length - 1); 
+        insns = insns.slice(4, insns.length - 1);
         expect(checkInstructions(insns, expected)).to.be.true;
 
         let jmp = <Jmp>insns.find(item => (item instanceof Jmp));
@@ -110,7 +110,7 @@ describe("forInLoopTest", function() {
         expect(jeqz.getTarget()).to.equal(insns[insns.length - 1]);
     });
 
-    it("forInLoopwithObjectwithContinue", function() {
+    it("forInLoopwithObjectwithContinue", function () {
         let insns = compileMainSnippet("for (let prop in {}) {continue; }");
         let prop = new VReg();
         let temp = new VReg();
@@ -121,15 +121,15 @@ describe("forInLoopTest", function() {
         let loopStartLabel = new Label();
         let loopEndLabel = new Label();
         let expected = [
-            new CreateEmptyObject(),
+            new EcmaCreateemptyobject(),
             new StaDyn(objInstance),
-            new GetPropertiesIterator(),
+            new EcmaGetpropiterator(),
             new StaDyn(iterReg),
 
             loopStartLabel,
-            new GetNextPropName(iterReg),
+            new EcmaGetnextpropname(iterReg),
             new StaDyn(rhs),
-            new StrictNotEqDyn(temp),
+            new EcmaStrictnoteqdyn(temp),
             new Jeqz(loopEndLabel),
             new LdaDyn(rhs),
             new StaDyn(prop),
@@ -137,7 +137,7 @@ describe("forInLoopTest", function() {
             new Jmp(loopStartLabel),
 
             loopEndLabel,
-            new ReturnUndefined()
+            new EcmaReturnundefined()
         ];
         expect(checkInstructions(insns, expected)).to.be.true;
 
@@ -146,7 +146,7 @@ describe("forInLoopTest", function() {
         expect(jumps.length).to.equal(3);
     });
 
-    it("forInLoopwithObjectwithBreak", function() {
+    it("forInLoopwithObjectwithBreak", function () {
         let insns = compileMainSnippet("for (let prop in {}) {break; }");
         let prop = new VReg();
         let temp = new VReg();
@@ -157,15 +157,15 @@ describe("forInLoopTest", function() {
         let loopStartLabel = new Label();
         let loopEndLabel = new Label();
         let expected = [
-            new CreateEmptyObject(),
+            new EcmaCreateemptyobject(),
             new StaDyn(objInstance),
-            new GetPropertiesIterator(),
+            new EcmaGetpropiterator(),
             new StaDyn(iterReg),
 
             loopStartLabel,
-            new GetNextPropName(iterReg),
+            new EcmaGetnextpropname(iterReg),
             new StaDyn(rhs),
-            new StrictNotEqDyn(temp),
+            new EcmaStrictnoteqdyn(temp),
             new Jeqz(loopEndLabel),
             new LdaDyn(rhs),
             new StaDyn(prop),
@@ -173,12 +173,25 @@ describe("forInLoopTest", function() {
             new Jmp(loopStartLabel),
 
             loopEndLabel,
-            new ReturnUndefined()
+            new EcmaReturnundefined()
         ];
         expect(checkInstructions(insns, expected)).to.be.true;
 
         let jumps = insns.filter(item => (item instanceof Jmp || item instanceof Jeqz));
 
         expect(jumps.length).to.equal(3);
+    });
+
+    it("ForIn SyntaxError", function () {
+        let source: string = `for ([(x, y)] in {}) { }`;
+        let errorThrown = false;
+        try {
+            compileMainSnippet(source);
+        } catch (err) {
+            expect(err instanceof DiagnosticError).to.be.true;
+            expect((<DiagnosticError>err).code).to.equal(DiagnosticCode.Property_destructuring_pattern_expected);
+            errorThrown = true;
+        }
+        expect(errorThrown).to.be.true;
     });
 });

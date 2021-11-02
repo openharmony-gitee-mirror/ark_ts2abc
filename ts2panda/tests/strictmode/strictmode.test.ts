@@ -14,12 +14,12 @@
  */
 
 import { expect } from 'chai';
-import * as ts from "typescript";
 import { readFileSync } from "fs";
+import * as ts from "typescript";
 import { isStrictMode, setGlobalStrict } from '../../src/strictMode';
-import jshelpers = require('../../src/jshelpers');
-import { getCompileOptions } from '../utils/base';
 import { isFunctionLikeDeclaration } from '../../src/syntaxCheckHelper';
+import { getCompileOptions } from '../utils/base';
+import jshelpers = require('../../src/jshelpers');
 
 function createSourceFile(filename: string): ts.SourceFile {
     let sourceFile = ts.createSourceFile(
@@ -41,15 +41,15 @@ function recordNodes(node: ts.Node, flag: boolean): boolean {
     return false;
 }
 
-describe("strict_mode", function() {
-    it('global strict mode', function() {
+describe("strict_mode", function () {
+    it('global strict mode', function () {
         let node = createSourceFile("tests/strictmode/global.js");
         setGlobalStrict(jshelpers.isEffectiveStrictModeSourceFile(node, getCompileOptions()));
         expect(isStrictMode(node)).to.be.true;
         recordNodes(node, true);
     });
 
-    it('function strict mode', function() {
+    it('function strict mode', function () {
         let node = createSourceFile("tests/strictmode/function.js");
         setGlobalStrict(jshelpers.isEffectiveStrictModeSourceFile(node, getCompileOptions()));
         expect(isStrictMode(node)).to.be.false;
@@ -68,7 +68,7 @@ describe("strict_mode", function() {
         });
     });
 
-    it('function nest1 strict mode', function() {
+    it('function nest1 strict mode', function () {
         let node = createSourceFile("tests/strictmode/function_nest1.js");
         setGlobalStrict(jshelpers.isEffectiveStrictModeSourceFile(node, getCompileOptions()));
         expect(isStrictMode(node)).to.be.false;
@@ -81,7 +81,7 @@ describe("strict_mode", function() {
         });
     });
 
-    it('function nest2 strict mode', function() {
+    it('function nest2 strict mode', function () {
         let node = createSourceFile("tests/strictmode/function_nest2.js");
         setGlobalStrict(jshelpers.isEffectiveStrictModeSourceFile(node, getCompileOptions()));
         expect(isStrictMode(node)).to.be.false;

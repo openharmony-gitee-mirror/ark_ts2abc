@@ -28,8 +28,8 @@ import { Pass } from "../../src/pass";
 import {
     Scope
 } from "../../src/scope";
-import { creatAstFromSnippet } from "./asthelper";
 import { setGlobalStrict } from "../../src/strictMode";
+import { creatAstFromSnippet } from "./asthelper";
 
 const compileOptions = {
     outDir: "../tmp/build",
@@ -107,7 +107,6 @@ export function basicChecker(left: IRNode, right: IRNode): boolean {
     for (let i = 0; i < operandCount; ++i) {
         const lop = left.operands[i];
         const rop = right.operands[i];
-
         if (!basicOperandsEqual(lop, rop)) {
             console.log("left.operands:");
             console.log(left.operands[i]);

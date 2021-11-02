@@ -18,56 +18,59 @@ import {
 } from 'chai';
 import 'mocha';
 import {
-    Add2Dyn,
+    EcmaAdd2dyn,
+    EcmaLdobjbyname,
+    EcmaLdobjbyvalue,
+    EcmaStlettoglobalrecord,
+    EcmaStobjbyname,
+    EcmaTryldglobalbyname,
     Imm,
-    LdaDyn,
     LdaiDyn,
-    LdObjByName,
-    LdObjByValue,
     MovDyn,
     ResultType,
     StaDyn,
-    StObjByName,
     VReg
-} from "../src/irnodes";
-import { checkInstructions, compileMainSnippet } from "./utils/base";
+} from "../../src/irnodes";
+import { checkInstructions, compileMainSnippet } from "../utils/base";
 
-describe("ElementAccess", function() {
-    it('get obj["property"]', function() {
+describe("ElementAccess", function () {
+    it('get obj["property"]', function () {
         let insns = compileMainSnippet(`let obj;
                                 obj["property"];`);
 
         let objReg = new VReg();
 
         let expected = [
-            new LdaDyn(objReg),
+            new EcmaStlettoglobalrecord('obj'),
+            new EcmaTryldglobalbyname('obj'),
             new StaDyn(objReg),
-            new LdObjByName("property", objReg)
+            new EcmaLdobjbyname("property", objReg),
         ];
 
-        insns = insns.slice(2, insns.length - 1); // cut off let obj and return.dyn
+        insns = insns.slice(1, insns.length - 1); // cut off let obj and return.dyn
         expect(checkInstructions(insns, expected)).to.be.true;
     });
 
-    it('set obj["property"]', function() {
+    it('set obj["property"]', function () {
         let insns = compileMainSnippet(`let obj;
                                 obj["property"] = 5;`);
         let objReg = new VReg();
         let tempObj = new VReg();
 
         let expected = [
-            new LdaDyn(objReg),
+            new EcmaStlettoglobalrecord('obj'),
+            new EcmaTryldglobalbyname('obj'),
             new StaDyn(tempObj),
             new MovDyn(objReg, tempObj),
             new LdaiDyn(new Imm(ResultType.Int, 5)),
-            new StObjByName("property", objReg),
+            new EcmaStobjbyname("property", objReg),
         ];
 
-        insns = insns.slice(2, insns.length - 1); // cut off let obj and return.dyn
+        insns = insns.slice(1, insns.length - 1); // cut off let obj and return.dyn
         expect(checkInstructions(insns, expected)).to.be.true;
     });
 
-    it('get obj[1 + 2]', function() {
+    it('get obj[1 + 2]', function () {
         let insns = compileMainSnippet(`let obj;
                                 obj[1 + 2];`);
         let prop1Reg = new VReg();
@@ -75,17 +78,17 @@ describe("ElementAccess", function() {
         let val = new VReg();
 
         let expected = [
-            new LdaDyn(objReg),
+            new EcmaStlettoglobalrecord('obj'),
+            new EcmaTryldglobalbyname('obj'),
             new StaDyn(objReg),
             new LdaiDyn(new Imm(ResultType.Int, 1)),
             new StaDyn(prop1Reg),
             new LdaiDyn(new Imm(ResultType.Int, 2)),
-            new Add2Dyn(prop1Reg),
+            new EcmaAdd2dyn(prop1Reg),
             new StaDyn(val),
-            new LdObjByValue(objReg, val)
+            new EcmaLdobjbyvalue(objReg, val)
         ];
-
-        insns = insns.slice(2, insns.length - 1); // cut off let obj and return.dyn
+        insns = insns.slice(1, insns.length - 1); // cut off let obj and return.dyn
         expect(checkInstructions(insns, expected)).to.be.true;
     });
 });

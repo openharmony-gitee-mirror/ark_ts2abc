@@ -19,31 +19,31 @@ import {
 import 'mocha';
 import { IntrinsicExpanderInternal } from "../src/intrinsicExpander";
 import {
-    And2Dyn,
     CallShort,
+    EcmaAnd2dyn,
+    EcmaShl2dyn,
     FormatItem,
     Intrinsic,
     IRNodeKind,
     OperandKind,
     ResultDst,
     ResultType,
-    Shl2Dyn,
     VReg
 } from "../src/irnodes";
 import { checkInstructions } from "./utils/base";
 
-describe("InstructionExpanderTest", function() {
-    it("test expander saves acc", function() {
+describe("InstructionExpanderTest", function () {
+    it("test expander saves acc", function () {
         let expander = new IntrinsicExpanderInternal();
         let lhs = new VReg();
-        let insns = expander.expandInstruction(new Shl2Dyn(lhs))[0];
+        let insns = expander.expandInstruction(new EcmaShl2dyn(lhs))[0];
         let expected = [
-            new CallShort("Ecmascript.Intrinsics.shl2Dyn", lhs)
+            new CallShort("Ecmascript.Intrinsics.ecma.shl2dyn", lhs)
         ];
         expect(checkInstructions(insns, expected)).to.be.true;
     });
 
-    it("test expander restores acc", function() {
+    it("test expander restores acc", function () {
         class FakeDyn extends Intrinsic {
             constructor(vs: VReg) {
                 super(
@@ -79,13 +79,13 @@ describe("InstructionExpanderTest", function() {
         expect(checkInstructions(insns, expected)).to.be.true;
     });
 
-    it("test expander for And2Dyn", function() {
+    it("test expander for EcmaAnd2dyn", function () {
         let expander = new IntrinsicExpanderInternal();
         let v1 = new VReg();
-        let insns = expander.expandInstruction(new And2Dyn(v1))[0];
+        let insns = expander.expandInstruction(new EcmaAnd2dyn(v1))[0];
         let lhs = new VReg();
         let expected = [
-            new CallShort("Ecmascript.Intrinsics.and2Dyn", lhs)
+            new CallShort("Ecmascript.Intrinsics.ecma.and2dyn", lhs)
         ];
         expect(checkInstructions(insns, expected)).to.be.true;
     })

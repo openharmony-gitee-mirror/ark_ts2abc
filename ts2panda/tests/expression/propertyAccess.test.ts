@@ -18,58 +18,59 @@ import {
 } from 'chai';
 import 'mocha';
 import {
-    CreateObjectWithBuffer,
-    DefineMethod,
-    DefineGetterSetterByValue,
+    EcmaCreateobjectwithbuffer,
+    EcmaDefinegettersetterbyvalue,
+    EcmaDefinemethod,
+    EcmaLdobjbyname,
+    EcmaStobjbyname,
+    EcmaTryldglobalbyname,
     Imm,
     LdaDyn,
     LdaiDyn,
     LdaStr,
-    LdObjByName,
     MovDyn,
     ResultType,
     StaDyn,
-    StObjByName,
     VReg
-} from "../src/irnodes";
-import { checkInstructions, compileAllSnippet, compileMainSnippet } from "./utils/base";
+} from "../../src/irnodes";
+import { checkInstructions, compileAllSnippet, compileMainSnippet } from "../utils/base";
 
-describe("PropertyAccess", function() {
-    it('get obj.property', function() {
+describe("PropertyAccess", function () {
+    it('get obj.property', function () {
         let insns = compileMainSnippet(`let obj;
                                 obj.property;`);
 
         let objReg = new VReg();
 
         let expected = [
-            new LdaDyn(objReg),
+            new EcmaTryldglobalbyname('obj'),
             new StaDyn(objReg),
-            new LdObjByName("property", objReg)
+            new EcmaLdobjbyname("property", objReg)
         ];
 
         insns = insns.slice(2, insns.length - 1); // cut off let obj and return.dyn
         expect(checkInstructions(insns, expected)).to.be.true;
     });
 
-    it('set obj.property', function() {
+    it('set obj.property', function () {
         let insns = compileMainSnippet(`let obj;
                                 obj.property = 0;`);
         let objReg = new VReg();
         let tempObj = new VReg();
 
         let expected = [
-            new LdaDyn(objReg),
+            new EcmaTryldglobalbyname('obj'),
             new StaDyn(tempObj),
             new MovDyn(objReg, tempObj),
             new LdaiDyn(new Imm(ResultType.Int, 0)),
-            new StObjByName("property", objReg),
+            new EcmaStobjbyname("property", objReg),
         ];
 
         insns = insns.slice(2, insns.length - 1); // cut off let obj and return.dyn
         expect(checkInstructions(insns, expected)).to.be.true;
     });
 
-    it('SetAccessor', function() {
+    it('SetAccessor', function () {
         let compilerunit = compileAllSnippet(`
             let obj = { 
                 set myMethod (arg) { 
@@ -82,15 +83,15 @@ describe("PropertyAccess", function() {
         let propReg = new VReg();
 
         let expected = [
-            new CreateObjectWithBuffer(new Imm(ResultType.Int, 0)),
+            new EcmaCreateobjectwithbuffer(new Imm(ResultType.Int, 0)),
             new StaDyn(objInstance),
             new LdaDyn(new VReg()),
-            new DefineMethod("func_myMethod_1", new VReg()),
+            new EcmaDefinemethod("myMethod", new Imm(ResultType.Int, 1), new VReg()),
             new StaDyn(funcReg),
             new LdaStr("myMethod"),
             new StaDyn(propReg),
             new LdaDyn(new VReg()),
-            new DefineGetterSetterByValue(objInstance, propReg, new VReg(), funcReg),
+            new EcmaDefinegettersetterbyvalue(objInstance, propReg, new VReg(), funcReg),
         ];
 
         compilerunit.forEach(element => {
@@ -101,14 +102,14 @@ describe("PropertyAccess", function() {
                 expect(checkInstructions(insns, expected)).to.be.true;
             }
 
-            if (element.internalName == "func_myMethod_1") {
+            if (element.internalName == "myMethod") {
                 let parameterLength = element.getParameterLength();
                 expect(parameterLength == 1).to.be.true;
             }
         });
     });
 
-    it('GetAccessor', function() {
+    it('GetAccessor', function () {
         let compilerunit = compileAllSnippet(`
             let obj = { 
                 get a() { return 'a'; }; 
@@ -119,15 +120,15 @@ describe("PropertyAccess", function() {
         let propReg = new VReg();
 
         let expected = [
-            new CreateObjectWithBuffer(new Imm(ResultType.Int, 0)),
+            new EcmaCreateobjectwithbuffer(new Imm(ResultType.Int, 0)),
             new StaDyn(objInstance),
             new LdaDyn(new VReg()),
-            new DefineMethod("func_a_1", new VReg()),
+            new EcmaDefinemethod("a", new Imm(ResultType.Int, 0), new VReg()),
             new StaDyn(funcReg),
             new LdaStr("a"),
             new StaDyn(propReg),
             new LdaDyn(new VReg()),
-            new DefineGetterSetterByValue(objInstance, propReg, funcReg, new VReg()),
+            new EcmaDefinegettersetterbyvalue(objInstance, propReg, funcReg, new VReg()),
         ];
 
         compilerunit.forEach(element => {
@@ -140,7 +141,7 @@ describe("PropertyAccess", function() {
         });
     });
 
-    it('GetAccessor&SetAccessor', function() {
+    it('GetAccessor&SetAccessor', function () {
         let compilerunit = compileAllSnippet(`let obj = { 
             get a() { return 'a'; }, 
             set a(x) {}
@@ -152,18 +153,18 @@ describe("PropertyAccess", function() {
         let propReg = new VReg();
 
         let expected = [
-            new CreateObjectWithBuffer(new Imm(ResultType.Int, 0)),
+            new EcmaCreateobjectwithbuffer(new Imm(ResultType.Int, 0)),
             new StaDyn(objInstance),
             new LdaDyn(new VReg()),
-            new DefineMethod("func_a_1", new VReg()),
+            new EcmaDefinemethod("#1#a", new Imm(ResultType.Int, 0), new VReg()),
             new StaDyn(getterReg),
             new LdaDyn(new VReg()),
-            new DefineMethod("func_a_2", new VReg()),
+            new EcmaDefinemethod("#2#a", new Imm(ResultType.Int, 1), new VReg()),
             new StaDyn(setterReg),
             new LdaStr("a"),
             new StaDyn(propReg),
             new LdaDyn(new VReg()),
-            new DefineGetterSetterByValue(objInstance, propReg, getterReg, setterReg),
+            new EcmaDefinegettersetterbyvalue(objInstance, propReg, getterReg, setterReg),
         ];
 
         compilerunit.forEach(element => {
